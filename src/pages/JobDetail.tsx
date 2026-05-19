@@ -1,160 +1,139 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '@/hooks/useAppContext';
-import { Users, MapPin, Briefcase, Calendar, ArrowLeft, DollarSign, Building2 } from 'lucide-react';
+import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Avatar from '@/components/ui/Avatar';
-import styles from './JobDetail.module.css';
+import PageHeader from '@/components/ui/PageHeader';
+import EmptyState from '@/components/ui/EmptyState';
+import { ArrowLeft, MapPin, Briefcase, Users, DollarSign } from 'lucide-react';
 import type { CandidateStatus } from '@/types';
+import styles from './JobDetail.module.css';
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function getJobStatusVariant(status: string) {
+function getCandidateVariant(status: CandidateStatus) {
   switch (status) {
-    case 'open': return 'success';
-    case 'closed': return 'danger';
-    case 'draft': return 'default';
-    case 'on-hold': return 'warning';
+    case 'New': return 'default';
+    case 'Screening': return 'secondary';
+    case 'Interview': return 'primary';
+    case 'Offer': return 'warning';
+    case 'Hired': return 'success';
+    case 'Rejected': return 'danger';
     default: return 'default';
   }
 }
 
-function getCandidateStatusVariant(status: CandidateStatus) {
+function getJobStatusVariant(status: string) {
   switch (status) {
-    case 'new': return 'default';
-    case 'screening': return 'secondary';
-    case 'interview': return 'primary';
-    case 'offer': return 'warning';
-    case 'hired': return 'success';
-    case 'rejected': return 'danger';
-    default: return 'default';
+    case 'Open': return 'success' as const;
+    case 'Closed': return 'danger' as const;
+    case 'On Hold': return 'warning' as const;
+    case 'Draft': return 'default' as const;
+    default: return 'default' as const;
   }
 }
 
 export default function JobDetail() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { state } = useAppContext();
+  const navigate = useNavigate();
 
   const job = state.jobs.find(j => j.id === id);
-  if (!job) return <div className={styles.notFound}>Job not found.</div>;
+  if (!job) return <div style={{ padding: 32 }}>Job not found.</div>;
 
-  const candidates = state.candidates.filter(c => c.currentJobId === job.id || c.jobId === job.id);
+  const candidates = state.candidates.filter(c => c.jobId === job.id);
+  const client = state.clients.find(c => c.id === job.clientId);
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/jobs')}>
+      <div className={styles.topBar}>
+        <Button variant="ghost" size="sm" onClick={() => navigate('/jobs')}>
           <ArrowLeft size={16} /> Back to Jobs
-        </button>
-        <div className={styles.headerMain}>
-          <div className={styles.titleRow}>
-            <h1 className={styles.title}>{job.title}</h1>
-            <Badge variant={getJobStatusVariant(job.status)}>{job.status}</Badge>
-          </div>
-          <div className={styles.meta}>
-            {job.clientName && <div className={styles.clientBadge}>{job.clientName}</div>}
-            <span><MapPin size={13} /> {job.location}</span>
-            <span><Briefcase size={13} /> {job.department}</span>
-            <span><Users size={13} /> {job.candidatesCount ?? candidates.length} candidates</span>
-            {job.postedAt && <span><Calendar size={13} /> Posted {formatDate(job.postedAt)}</span>}
-          </div>
-        </div>
-        <div className={styles.headerActions}>
-          <Button variant="outline" size="sm">Edit Job</Button>
-          <Button size="sm">Add Candidate</Button>
-        </div>
+        </Button>
       </div>
 
-      <div className={styles.body}>
+      <PageHeader
+        title={job.title}
+        subtitle={client ? `Client: ${client.name}` : undefined}
+        action={<Badge variant={getJobStatusVariant(job.status)}>{job.status}</Badge>}
+      />
+
+      <div className={styles.layout}>
         <div className={styles.main}>
-          {candidates.length > 0 && (
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Candidates ({candidates.length})</h2>
-              <div className={styles.candidateList}>
-                {candidates.map(c => (
-                  <div key={c.id} className={styles.candidateCard} onClick={() => navigate(`/candidates/${c.id}`)}
-                  >
-                    <Avatar initials={c.name.split(' ').map(n => n[0]).join('').slice(0, 2)} size="md" />
-                    <div className={styles.candidateInfo}>
-                      <div className={styles.candidateName}>{c.name}</div>
-                      <div className={styles.candidateMeta}>{c.currentTitle ?? ''}{c.currentCompany ? ` · ${c.currentCompany}` : ''}</div>
-                    </div>
-                    <div className={styles.candidateBadges}>
-                      {c.currentStage && <div className={styles.stage}>{c.currentStage}</div>}
-                      <Badge variant={getCandidateStatusVariant(c.status)}>{c.status}</Badge>
-                    </div>
+          <Card padding="md">
+            <h3 className={styles.sectionTitle}>Job Description</h3>
+            <p className={styles.description}>{job.description}</p>
+
+            {job.requirements && job.requirements.length > 0 && (
+              <>
+                <h3 className={styles.sectionTitle} style={{ marginTop: 20 }}>Requirements</h3>
+                <ul className={styles.reqList}>
+                  {job.requirements.map((req, i) => (
+                    <li key={i}>{req}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </Card>
+
+          <Card padding="none" style={{ marginTop: 20 }}>
+            <div className={styles.candidatesHeader}>
+              <h3 className={styles.sectionTitle}>Candidates ({candidates.length})</h3>
+            </div>
+            {candidates.length === 0 ? (
+              <EmptyState
+                title="No candidates yet"
+                description="Candidates applied to this job will appear here."
+              />
+            ) : (
+              candidates.map(candidate => (
+                <div
+                  key={candidate.id}
+                  className={styles.candidateRow}
+                  onClick={() => navigate(`/candidates/${candidate.id}`)}
+                >
+                  <Avatar
+                    initials={candidate.name.split(' ').map(n => n[0]).join('')}
+                    size="sm"
+                  />
+                  <div className={styles.candidateInfo}>
+                    <div className={styles.candidateName}>{candidate.name}</div>
+                    <div className={styles.candidateSub}>{candidate.email}</div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {job.pipeline && job.pipeline.length > 0 && (
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Pipeline Stages</h2>
-              <div className={styles.pipelineBoard}>
-                {job.pipeline.map(stage => {
-                  const stageCandidates = candidates.filter(c => c.currentStage === stage);
-                  return (
-                    <div key={stage} className={styles.pipelineColumn}>
-                      <div className={styles.pipelineColumnHeader}>
-                        <span>{stage}</span>
-                        <span className={styles.pipelineCount}>{stageCandidates.length}</span>
-                      </div>
-                      <div className={styles.pipelineCards}>
-                        {stageCandidates.map(c => (
-                          <div key={c.id} className={styles.pipelineCard} onClick={() => navigate(`/candidates/${c.id}`)}>
-                            <Avatar initials={c.name.split(' ').map(n => n[0]).join('').slice(0, 2)} size="sm" />
-                            <div>
-                              <div className={styles.pipelineCardName}>{c.name}</div>
-                              <div className={styles.pipelineCardRole}>{c.currentTitle ?? ''}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {job.description && (
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Description</h2>
-              <p className={styles.description}>{job.description}</p>
-            </div>
-          )}
-
-          {job.requirements && job.requirements.length > 0 && (
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Requirements</h2>
-              <ul className={styles.reqList}>
-                {job.requirements.map((r, i) => <li key={i}>{r}</li>)}
-              </ul>
-            </div>
-          )}
+                  <Badge variant={getCandidateVariant(candidate.status) as any}>
+                    {candidate.status}
+                  </Badge>
+                </div>
+              ))
+            )}
+          </Card>
         </div>
 
         <div className={styles.sidebar}>
-          <div className={styles.detailCard}>
-            <h3 className={styles.detailTitle}>Details</h3>
-            <div className={styles.detailRow}><span>Status</span><Badge variant={getJobStatusVariant(job.status)}>{job.status}</Badge></div>
-            <div className={styles.detailRow}><span>Type</span><strong>{job.type}</strong></div>
-            <div className={styles.detailRow}><span>Department</span><strong>{job.department}</strong></div>
-            <div className={styles.detailRow}><span>Location</span><strong>{job.location}</strong></div>
-            {job.salary && (
-              <div className={styles.detailRow}>
-                <span>Salary</span>
-                <strong>{job.salary.currency}{job.salary.min.toLocaleString()} – {job.salary.currency}{job.salary.max.toLocaleString()}</strong>
+          <Card padding="md">
+            <h3 className={styles.sectionTitle}>Job Details</h3>
+            <div className={styles.detailsList}>
+              <div className={styles.detailItem}>
+                <MapPin size={15} className={styles.detailIcon} />
+                <span>{job.location}</span>
               </div>
-            )}
-            {job.recruiterName && <div className={styles.detailRow}><span>Recruiter</span><strong>{job.recruiterName}</strong></div>}
-            {job.closingDate && <div className={styles.detailRow}><span>Closes</span><strong>{formatDate(job.closingDate)}</strong></div>}
-          </div>
+              <div className={styles.detailItem}>
+                <Briefcase size={15} className={styles.detailIcon} />
+                <span>{job.type}</span>
+              </div>
+              <div className={styles.detailItem}>
+                <Users size={15} className={styles.detailIcon} />
+                <span>{candidates.length} candidate{candidates.length !== 1 ? 's' : ''}</span>
+              </div>
+              {job.salaryMin && job.salaryMax && (
+                <div className={styles.detailItem}>
+                  <DollarSign size={15} className={styles.detailIcon} />
+                  <strong>
+                    {job.salaryCurrency ?? '$'}{job.salaryMin.toLocaleString()} – {job.salaryCurrency ?? '$'}{job.salaryMax.toLocaleString()}
+                  </strong>
+                </div>
+              )}
+            </div>
+          </Card>
         </div>
       </div>
     </div>

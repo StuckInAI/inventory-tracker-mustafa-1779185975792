@@ -1,30 +1,22 @@
-import { createContext, useContext, useReducer, ReactNode } from 'react';
-import { seedData } from '@/lib/seedData';
-import type { Job, Candidate, Application, Interview, Client, TeamMember } from '@/types';
+import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import type { AppState, Action } from '../types';
+import {
+  seedJobs,
+  seedCandidates,
+  seedInterviews,
+  seedClients,
+  seedTeam,
+  currentUser,
+} from '../lib/seedData';
 
-export type AppState = {
-  jobs: Job[];
-  candidates: Candidate[];
-  applications: Application[];
-  interviews: Interview[];
-  clients: Client[];
-  team: TeamMember[];
-  currentUser: TeamMember;
+const initialState: AppState = {
+  jobs: seedJobs,
+  candidates: seedCandidates,
+  interviews: seedInterviews,
+  clients: seedClients,
+  team: seedTeam,
+  currentUser,
 };
-
-type Action =
-  | { type: 'ADD_JOB'; payload: Job }
-  | { type: 'UPDATE_JOB'; payload: Job }
-  | { type: 'DELETE_JOB'; payload: string }
-  | { type: 'ADD_CANDIDATE'; payload: Candidate }
-  | { type: 'UPDATE_CANDIDATE'; payload: Candidate }
-  | { type: 'ADD_APPLICATION'; payload: Application }
-  | { type: 'UPDATE_APPLICATION'; payload: Application }
-  | { type: 'ADD_INTERVIEW'; payload: Interview }
-  | { type: 'UPDATE_INTERVIEW'; payload: Interview }
-  | { type: 'ADD_CLIENT'; payload: Client }
-  | { type: 'UPDATE_CLIENT'; payload: Client }
-  | { type: 'ADD_TEAM_MEMBER'; payload: TeamMember };
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
@@ -38,29 +30,34 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, candidates: [...state.candidates, action.payload] };
     case 'UPDATE_CANDIDATE':
       return { ...state, candidates: state.candidates.map(c => c.id === action.payload.id ? action.payload : c) };
-    case 'ADD_APPLICATION':
-      return { ...state, applications: [...state.applications, action.payload] };
-    case 'UPDATE_APPLICATION':
-      return { ...state, applications: state.applications.map(a => a.id === action.payload.id ? action.payload : a) };
+    case 'DELETE_CANDIDATE':
+      return { ...state, candidates: state.candidates.filter(c => c.id !== action.payload) };
     case 'ADD_INTERVIEW':
       return { ...state, interviews: [...state.interviews, action.payload] };
     case 'UPDATE_INTERVIEW':
       return { ...state, interviews: state.interviews.map(i => i.id === action.payload.id ? action.payload : i) };
+    case 'DELETE_INTERVIEW':
+      return { ...state, interviews: state.interviews.filter(i => i.id !== action.payload) };
     case 'ADD_CLIENT':
       return { ...state, clients: [...state.clients, action.payload] };
     case 'UPDATE_CLIENT':
       return { ...state, clients: state.clients.map(c => c.id === action.payload.id ? action.payload : c) };
-    case 'ADD_TEAM_MEMBER':
-      return { ...state, team: [...state.team, action.payload] };
+    case 'DELETE_CLIENT':
+      return { ...state, clients: state.clients.filter(c => c.id !== action.payload) };
     default:
       return state;
   }
 }
 
-const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<Action> } | null>(null);
+type AppContextType = {
+  state: AppState;
+  dispatch: React.Dispatch<Action>;
+};
+
+const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, seedData as AppState);
+  const [state, dispatch] = useReducer(reducer, initialState);
   return (
     <AppContext.Provider value={{ state, dispatch }}>
       {children}

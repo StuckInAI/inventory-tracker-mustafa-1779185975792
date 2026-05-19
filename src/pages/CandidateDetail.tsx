@@ -1,127 +1,116 @@
-import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Phone, MapPin, Briefcase } from 'lucide-react';
 import { useAppContext } from '@/hooks/useAppContext';
-import PageHeader from '@/components/ui/PageHeader';
 import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
+import Button from '@/components/ui/Button';
 import Avatar from '@/components/ui/Avatar';
+import PageHeader from '@/components/ui/PageHeader';
+import { ArrowLeft, Mail, Phone, MapPin, Briefcase } from 'lucide-react';
+import type { CandidateStatus } from '@/types';
+
+function getStatusVariant(status: CandidateStatus) {
+  switch (status) {
+    case 'New': return 'default' as const;
+    case 'Screening': return 'secondary' as const;
+    case 'Interview': return 'primary' as const;
+    case 'Offer': return 'warning' as const;
+    case 'Hired': return 'success' as const;
+    case 'Rejected': return 'danger' as const;
+    default: return 'default' as const;
+  }
+}
 
 export default function CandidateDetail() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { state } = useAppContext();
+  const navigate = useNavigate();
 
   const candidate = state.candidates.find(c => c.id === id);
+  if (!candidate) return <div style={{ padding: 32 }}>Candidate not found.</div>;
 
-  if (!candidate) {
-    return (
-      <div style={{ padding: 'var(--spacing-6)' }}>
-        <Button variant="ghost" onClick={() => navigate('/candidates')}>
-          <ArrowLeft size={16} /> Back to Candidates
-        </Button>
-        <p style={{ marginTop: 'var(--spacing-4)', color: 'var(--color-gray-500)' }}>Candidate not found.</p>
-      </div>
-    );
-  }
-
-  const applications = state.applications.filter(a => a.candidateId === candidate.id);
-
-  const getStatusVariant = (status: string): 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'secondary' => {
-    const map: Record<string, 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'secondary'> = {
-      active: 'success', inactive: 'default', placed: 'primary', blacklisted: 'danger',
-    };
-    return map[status] ?? 'default';
-  };
+  const job = state.jobs.find(j => j.id === candidate.jobId);
+  const interviews = state.interviews.filter(i => i.candidateId === candidate.id);
 
   return (
-    <div style={{ padding: 'var(--spacing-6)' }}>
-      <div style={{ marginBottom: 'var(--spacing-4)' }}>
-        <Button variant="ghost" onClick={() => navigate('/candidates')}>
-          <ArrowLeft size={16} /> Back to Candidates
-        </Button>
-      </div>
+    <div style={{ padding: 32 }}>
+      <Button variant="ghost" size="sm" onClick={() => navigate('/candidates')} style={{ marginBottom: 16 }}>
+        <ArrowLeft size={16} /> Back to Candidates
+      </Button>
 
       <PageHeader
         title={candidate.name}
-        subtitle={candidate.currentTitle || 'Candidate'}
+        subtitle={candidate.email}
+        action={<Badge variant={getStatusVariant(candidate.status)}>{candidate.status}</Badge>}
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 'var(--spacing-5)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
-          <Card>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--spacing-3)', textAlign: 'center' }}>
-              <Avatar initials={candidate.name.split(' ').map((n: string) => n[0]).join('').slice(0,2)} size="lg" />
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 16 }}>{candidate.name}</div>
-                {candidate.currentTitle && <div style={{ color: 'var(--color-gray-600)', fontSize: 13 }}>{candidate.currentTitle}</div>}
-                <div style={{ marginTop: 'var(--spacing-2)' }}>
-                  <Badge variant={getStatusVariant(candidate.status)}>{candidate.status}</Badge>
-                </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, marginTop: 24 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <Card padding="md">
+            <h3 style={{ fontWeight: 700, marginBottom: 16 }}>Contact Information</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', color: 'var(--color-gray-700)' }}>
+                <Mail size={15} /><span>{candidate.email}</span>
               </div>
-            </div>
-            <div style={{ marginTop: 'var(--spacing-4)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
-              {candidate.email && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--color-gray-600)' }}>
-                  <Mail size={14} /> {candidate.email}
-                </div>
-              )}
-              {candidate.phone && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--color-gray-600)' }}>
-                  <Phone size={14} /> {candidate.phone}
-                </div>
-              )}
-              {candidate.location && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--color-gray-600)' }}>
-                  <MapPin size={14} /> {candidate.location}
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', color: 'var(--color-gray-700)' }}>
+                <Phone size={15} /><span>{candidate.phone}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', color: 'var(--color-gray-700)' }}>
+                <MapPin size={15} /><span>{candidate.location}</span>
+              </div>
+              {job && (
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', color: 'var(--color-gray-700)' }}>
+                  <Briefcase size={15} /><span>{job.title}</span>
                 </div>
               )}
             </div>
           </Card>
 
           {candidate.skills && candidate.skills.length > 0 && (
-            <Card>
-              <div style={{ fontWeight: 700, marginBottom: 'var(--spacing-3)', fontSize: 14 }}>Skills</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {candidate.skills.map((skill: string) => (
-                  <Badge key={skill} variant="secondary">{skill}</Badge>
+            <Card padding="md">
+              <h3 style={{ fontWeight: 700, marginBottom: 12 }}>Skills</h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {candidate.skills.map((skill, i) => (
+                  <Badge key={i} variant="secondary">{skill}</Badge>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {candidate.notes && (
+            <Card padding="md">
+              <h3 style={{ fontWeight: 700, marginBottom: 8 }}>Notes</h3>
+              <p style={{ color: 'var(--color-gray-600)', lineHeight: 1.6 }}>{candidate.notes}</p>
+            </Card>
+          )}
+
+          {interviews.length > 0 && (
+            <Card padding="md">
+              <h3 style={{ fontWeight: 700, marginBottom: 12 }}>Interviews</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {interviews.map(interview => (
+                  <div key={interview.id} style={{ padding: '10px 12px', background: 'var(--color-gray-50)', borderRadius: 8 }}>
+                    <div style={{ fontWeight: 600 }}>{interview.type} Interview</div>
+                    <div style={{ fontSize: 13, color: 'var(--color-gray-500)' }}>
+                      {new Date(interview.scheduledAt).toLocaleString()} · {interview.status}
+                    </div>
+                  </div>
                 ))}
               </div>
             </Card>
           )}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
-          <Card>
-            <div style={{ fontWeight: 700, marginBottom: 'var(--spacing-4)', fontSize: 14 }}>Applications ({applications.length})</div>
-            {applications.length === 0 ? (
-              <p style={{ color: 'var(--color-gray-500)', fontSize: 13 }}>No applications yet.</p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
-                {applications.map(app => {
-                  const job = state.jobs.find(j => j.id === app.jobId);
-                  return (
-                    <div key={app.id} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)', padding: 'var(--spacing-3)', background: 'var(--color-gray-50)', borderRadius: 'var(--radius-md)' }}>
-                      <Briefcase size={16} style={{ color: 'var(--color-gray-400)' }} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: 13 }}>{job?.title || 'Unknown Job'}</div>
-                        <div style={{ fontSize: 12, color: 'var(--color-gray-500)' }}>{app.stage}</div>
-                      </div>
-                      <Badge variant="default">{app.stage}</Badge>
-                    </div>
-                  );
-                })}
+        <div>
+          <Card padding="md">
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, textAlign: 'center' }}>
+              <Avatar initials={candidate.name.split(' ').map(n => n[0]).join('')} size="lg" />
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 17 }}>{candidate.name}</div>
+                <div style={{ color: 'var(--color-gray-500)', fontSize: 13 }}>{candidate.experience} years experience</div>
               </div>
-            )}
+              <Badge variant={getStatusVariant(candidate.status)}>{candidate.status}</Badge>
+            </div>
           </Card>
-
-          {candidate.notes && (
-            <Card>
-              <div style={{ fontWeight: 700, marginBottom: 'var(--spacing-3)', fontSize: 14 }}>Notes</div>
-              <p style={{ fontSize: 13, color: 'var(--color-gray-600)', lineHeight: 1.6 }}>{candidate.notes}</p>
-            </Card>
-          )}
         </div>
       </div>
     </div>

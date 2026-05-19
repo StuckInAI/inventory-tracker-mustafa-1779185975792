@@ -1,80 +1,65 @@
-export type JobStatus = 'Open' | 'Closed' | 'Draft' | 'On Hold';
-export type CandidateStatus = 'Active' | 'Inactive' | 'Hired' | 'Rejected';
-export type InterviewType = 'Phone Screen' | 'Technical' | 'Behavioral' | 'Final' | 'HR';
+export type JobStatus = 'Open' | 'Closed' | 'On Hold' | 'Draft';
+export type JobType = 'Full-time' | 'Part-time' | 'Contract' | 'Freelance' | 'Internship';
+export type CandidateStatus = 'New' | 'Screening' | 'Interview' | 'Offer' | 'Hired' | 'Rejected';
+export type InterviewType = 'Phone' | 'Video' | 'On-site' | 'Technical';
 export type InterviewStatus = 'Scheduled' | 'Completed' | 'Cancelled' | 'No Show';
 
 export interface Job {
   id: string;
   title: string;
+  clientId: string;
   department: string;
   location: string;
-  type: string;
+  type: JobType;
   status: JobStatus;
-  description?: string;
-  requirements?: string[];
+  description: string;
+  requirements: string[];
   salaryMin?: number;
   salaryMax?: number;
-  clientId?: string;
-  clientName?: string;
-  recruiterName?: string;
-  closingDate?: string;
-  postedAt?: string;
-  candidatesCount?: number;
-  pipeline?: string[];
+  salaryCurrency?: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface Candidate {
   id: string;
   name: string;
   email: string;
-  phone?: string;
-  location?: string;
+  phone: string;
+  jobId: string;
   status: CandidateStatus;
-  jobId?: string;
-  jobTitle?: string;
-  skills?: string[];
-  experience?: number;
-  currentTitle?: string;
-  currentCompany?: string;
-  currentStage?: string;
+  stage?: string;
+  skills: string[];
+  experience: number;
+  location: string;
   resumeUrl?: string;
   notes?: string;
-  source?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Interview {
+  id: string;
+  candidateId: string;
+  jobId: string;
+  type: InterviewType;
+  status: InterviewStatus;
+  scheduledAt: string;
+  notes: string;
   createdAt: string;
 }
 
 export interface Client {
   id: string;
   name: string;
-  industry?: string;
+  industry: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
   website?: string;
-  contactName?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  address?: string;
   notes?: string;
-  activeJobs?: number;
   createdAt: string;
-}
-
-export interface Interview {
-  id: string;
-  candidateId: string;
-  candidateName: string;
-  jobId: string;
-  jobTitle: string;
-  interviewerId?: string;
-  interviewerName?: string;
-  type: InterviewType;
-  status: InterviewStatus;
-  scheduledAt: string;
-  duration?: number;
-  location?: string;
-  notes?: string;
-  feedback?: string;
-  rating?: number;
-  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TeamMember {
@@ -82,22 +67,30 @@ export interface TeamMember {
   name: string;
   email: string;
   role: string;
-  department?: string;
-  phone?: string;
-  avatar?: string;
-  jobIds?: string[];
-  createdAt: string;
+  avatar: string;
+  department: string;
+  joinedAt: string;
 }
 
 export interface AppState {
   jobs: Job[];
   candidates: Candidate[];
-  clients: Client[];
   interviews: Interview[];
+  clients: Client[];
   team: TeamMember[];
-  currentUser: {
-    name: string;
-    role: string;
-    avatar: string;
-  };
+  currentUser: TeamMember;
 }
+
+export type Action =
+  | { type: 'ADD_JOB'; payload: Job }
+  | { type: 'UPDATE_JOB'; payload: Job }
+  | { type: 'DELETE_JOB'; payload: string }
+  | { type: 'ADD_CANDIDATE'; payload: Candidate }
+  | { type: 'UPDATE_CANDIDATE'; payload: Candidate }
+  | { type: 'DELETE_CANDIDATE'; payload: string }
+  | { type: 'ADD_INTERVIEW'; payload: Interview }
+  | { type: 'UPDATE_INTERVIEW'; payload: Interview }
+  | { type: 'DELETE_INTERVIEW'; payload: string }
+  | { type: 'ADD_CLIENT'; payload: Client }
+  | { type: 'UPDATE_CLIENT'; payload: Client }
+  | { type: 'DELETE_CLIENT'; payload: string };

@@ -1,99 +1,195 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '@/hooks/useAppContext';
-import { Plus, Search, Briefcase } from 'lucide-react';
-import PageHeader from '@/components/ui/PageHeader';
-import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
+import PageHeader from '@/components/ui/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
-import styles from './Jobs.module.css';
+import { Briefcase, Plus, MapPin } from 'lucide-react';
+import type { JobType, JobStatus } from '@/types';
 import type { Job } from '@/types';
+import styles from './Jobs.module.css';
 
-function getStatusVariant(status: string) {
-  switch (status) {
-    case 'open': return 'success';
-    case 'closed': return 'danger';
-    case 'draft': return 'default';
-    case 'on-hold': return 'warning';
-    default: return 'default';
-  }
-}
+type FormState = {
+  title: string;
+  clientId: string;
+  department: string;
+  location: string;
+  type: JobType;
+  status: JobStatus;
+  description: string;
+  requirements: string;
+};
 
 export default function Jobs() {
-  const { state } = useAppContext();
+  const { state, dispatch } = useAppContext();
   const navigate = useNavigate();
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-
-  const filtered = state.jobs.filter(j => {
-    const matchSearch = j.title.toLowerCase().includes(search.toLowerCase()) ||
-      j.department.toLowerCase().includes(search.toLowerCase()) ||
-      j.location.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === 'all' || j.status === statusFilter;
-    return matchSearch && matchStatus;
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState<FormState>({
+    title: '',
+    clientId: '',
+    department: '',
+    location: '',
+    type: 'Full-time',
+    status: 'Open',
+    description: '',
+    requirements: '',
   });
+
+  const handleSubmit = () => {
+    const now = new Date().toISOString();
+    const newJob: Job = {
+      id: crypto.randomUUID(),
+      title: form.title,
+      clientId: form.clientId,
+      department: form.department,
+      location: form.location,
+      type: form.type,
+      status: form.status,
+      description: form.description,
+      requirements: form.requirements.split('\n').filter(Boolean),
+      createdAt: now,
+      updatedAt: now,
+    };
+    dispatch({ type: 'ADD_JOB', payload: newJob });
+    setShowModal(false);
+    setForm({ title: '', clientId: '', department: '', location: '', type: 'Full-time', status: 'Open', description: '', requirements: '' });
+  };
+
+  const getStatusVariant = (status: JobStatus) => {
+    switch (status) {
+      case 'Open': return 'success' as const;
+      case 'Closed': return 'danger' as const;
+      case 'On Hold': return 'warning' as const;
+      case 'Draft': return 'default' as const;
+      default: return 'default' as const;
+    }
+  };
+
+  const clientOptions = state.clients.map(c => ({ value: c.id, label: c.name }));
 
   return (
     <div className={styles.page}>
       <PageHeader
         title="Jobs"
-        subtitle={`${state.jobs.length} open positions`}
-        actions={
-          <Button size="sm" onClick={() => {}}>
-            <Plus size={15} /> New Job
+        subtitle="Manage all job openings"
+        action={
+          <Button onClick={() => setShowModal(true)}>
+            <Plus size={16} /> Add Job
           </Button>
         }
       />
 
-      <div className={styles.filters}>
-        <Input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search jobs..."
-          icon={<Search size={15} />}
-        />
-        <div className={styles.statusTabs}>
-          {['all', 'open', 'closed', 'draft', 'on-hold'].map(s => (
-            <button
-              key={s}
-              className={`${styles.tab} ${statusFilter === s ? styles.tabActive : ''}`}
-              onClick={() => setStatusFilter(s)}
-            >
-              {s.charAt(0).toUpperCase() + s.slice(1)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {filtered.length === 0 ? (
+      {state.jobs.length === 0 ? (
         <EmptyState
           icon={<Briefcase size={40} />}
-          title="No jobs found"
-          description="Try adjusting your search or filters."
+          title="No jobs yet"
+          description="Create your first job opening to get started."
+          action={<Button onClick={() => setShowModal(true)}>Add Job</Button>}
         />
       ) : (
         <div className={styles.grid}>
-          {filtered.map((job: Job) => (
-            <div key={job.id} className={styles.jobCard} onClick={() => navigate(`/jobs/${job.id}`)}>
-              <div className={styles.jobCardHeader}>
-                <div className={styles.jobTitle}>{job.title}</div>
-                <Badge variant={getStatusVariant(job.status)}>{job.status}</Badge>
-              </div>
-              <div className={styles.jobMeta}>
-                <span>{job.department}</span>
-                <span>{job.location}</span>
-                <span>{job.type}</span>
-              </div>
-              {job.clientName && <div className={styles.client}>{job.clientName}</div>}
-              <div className={styles.jobFooter}>
-                <span>{(job.candidatesCount ?? 0)} candidates</span>
-                {job.postedAt && <span>Posted {new Date(job.postedAt).toLocaleDateString()}</span>}
-              </div>
-            </div>
-          ))}
+          {state.jobs.map(job => {
+            const candidateCount = state.candidates.filter(c => c.jobId === job.id).length;
+            const client = state.clients.find(c => c.id === job.clientId);
+            return (
+              <Card key={job.id} padding="md" onClick={() => navigate(`/jobs/${job.id}`)}>
+                <div className={styles.cardTop}>
+                  <Badge variant={getStatusVariant(job.status)}>{job.status}</Badge>
+                  <span className={styles.jobType}>{job.type}</span>
+                </div>
+                <h3 className={styles.jobTitle}>{job.title}</h3>
+                {client && <div className={styles.clientName}>{client.name}</div>}
+                <div className={styles.jobMeta}>
+                  <span><MapPin size={13} /> {job.location}</span>
+                  <span>{job.department}</span>
+                </div>
+                <div className={styles.candidateCount}>
+                  {candidateCount} candidate{candidateCount !== 1 ? 's' : ''}
+                </div>
+              </Card>
+            );
+          })}
         </div>
       )}
+
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Add New Job">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Input
+            label="Job Title"
+            value={form.title}
+            onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+            placeholder="e.g. Senior Frontend Engineer"
+          />
+          <Select
+            label="Client"
+            value={form.clientId}
+            onChange={val => setForm(f => ({ ...f, clientId: val }))}
+            options={clientOptions}
+          />
+          <Input
+            label="Department"
+            value={form.department}
+            onChange={e => setForm(f => ({ ...f, department: e.target.value }))}
+            placeholder="e.g. Engineering"
+          />
+          <Input
+            label="Location"
+            value={form.location}
+            onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
+            placeholder="e.g. Remote"
+          />
+          <Select
+            label="Type"
+            value={form.type}
+            onChange={val => setForm(f => ({ ...f, type: val as JobType }))}
+            options={[
+              { value: 'Full-time', label: 'Full-time' },
+              { value: 'Part-time', label: 'Part-time' },
+              { value: 'Contract', label: 'Contract' },
+              { value: 'Freelance', label: 'Freelance' },
+              { value: 'Internship', label: 'Internship' },
+            ]}
+          />
+          <Select
+            label="Status"
+            value={form.status}
+            onChange={val => setForm(f => ({ ...f, status: val as JobStatus }))}
+            options={[
+              { value: 'Open', label: 'Open' },
+              { value: 'Closed', label: 'Closed' },
+              { value: 'On Hold', label: 'On Hold' },
+              { value: 'Draft', label: 'Draft' },
+            ]}
+          />
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-gray-700)', display: 'block', marginBottom: 4 }}>Description</label>
+            <textarea
+              value={form.description}
+              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+              rows={3}
+              style={{ width: '100%', padding: '8px 12px', border: '1.5px solid var(--color-gray-300)', borderRadius: 'var(--radius-md)', fontSize: 13.5, resize: 'vertical' }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-gray-700)', display: 'block', marginBottom: 4 }}>Requirements (one per line)</label>
+            <textarea
+              value={form.requirements}
+              onChange={e => setForm(f => ({ ...f, requirements: e.target.value }))}
+              rows={3}
+              style={{ width: '100%', padding: '8px 12px', border: '1.5px solid var(--color-gray-300)', borderRadius: 'var(--radius-md)', fontSize: 13.5, resize: 'vertical' }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={!form.title}>Add Job</Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

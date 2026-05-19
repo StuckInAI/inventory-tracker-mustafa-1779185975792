@@ -1,127 +1,132 @@
-import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '@/hooks/useAppContext';
-import StatCard from '@/components/ui/StatCard';
-import Card from '@/components/ui/Card';
-import Avatar from '@/components/ui/Avatar';
 import { Briefcase, Users, Calendar, TrendingUp } from 'lucide-react';
+import { useAppContext } from '@/hooks/useAppContext';
+import Card from '@/components/ui/Card';
+import Badge from '@/components/ui/Badge';
+import StatCard from '@/components/ui/StatCard';
+import PageHeader from '@/components/ui/PageHeader';
+import Avatar from '@/components/ui/Avatar';
+import EmptyState from '@/components/ui/EmptyState';
 import styles from './Dashboard.module.css';
 
 export default function Dashboard() {
   const { state } = useAppContext();
   const navigate = useNavigate();
 
-  const hiredCount = useMemo(
-    () => state.candidates.filter(c => c.status === 'hired').length,
-    [state.candidates]
-  );
+  const openJobs = state.jobs.filter(j => j.status === 'Open');
+  const totalCandidates = state.candidates.length;
+  const scheduledInterviews = state.interviews.filter(i => i.status === 'Scheduled');
+  const hiredCandidates = state.candidates.filter(c => c.status === 'Hired');
 
-  const openJobsCount = useMemo(
-    () => state.jobs.filter(j => j.status === 'open').length,
-    [state.jobs]
-  );
+  const getStatusVariant = (status: string) => {
+    switch (status) {
+      case 'Open': return 'success' as const;
+      case 'Closed': return 'danger' as const;
+      case 'On Hold': return 'warning' as const;
+      case 'Draft': return 'default' as const;
+      default: return 'default' as const;
+    }
+  };
 
-  const scheduledInterviews = useMemo(
-    () => state.interviews.filter(i => i.status === 'scheduled').length,
-    [state.interviews]
-  );
+  const getCandidateVariant = (status: string) => {
+    switch (status) {
+      case 'New': return 'default' as const;
+      case 'Screening': return 'secondary' as const;
+      case 'Interview': return 'primary' as const;
+      case 'Offer': return 'warning' as const;
+      case 'Hired': return 'success' as const;
+      case 'Rejected': return 'danger' as const;
+      default: return 'default' as const;
+    }
+  };
 
-  const recentCandidates = useMemo(
-    () => [...state.candidates].slice(0, 5),
-    [state.candidates]
-  );
+  const recentCandidates = [...state.candidates]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5);
 
   return (
     <div className={styles.page}>
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Dashboard</h1>
-        <p className={styles.pageSubtitle}>Welcome back, {state.currentUser.name}</p>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        subtitle="Welcome back! Here's what's happening today."
+      />
 
-      <div className={styles.statsGrid}>
+      <div className={styles.stats}>
         <StatCard
-          title="Open Jobs"
-          value={openJobsCount}
           icon={<Briefcase size={20} />}
-          trend={{ value: 12, direction: 'up' }}
+          label="Open Jobs"
+          value={openJobs.length}
+          color="primary"
         />
         <StatCard
-          title="Total Candidates"
-          value={state.candidates.length}
           icon={<Users size={20} />}
-          trend={{ value: 8, direction: 'up' }}
+          label="Total Candidates"
+          value={totalCandidates}
+          color="secondary"
         />
         <StatCard
-          title="Interviews Scheduled"
-          value={scheduledInterviews}
           icon={<Calendar size={20} />}
+          label="Scheduled Interviews"
+          value={scheduledInterviews.length}
+          color="warning"
         />
         <StatCard
-          title="Hired This Month"
-          value={hiredCount}
           icon={<TrendingUp size={20} />}
-          trend={{ value: 5, direction: 'up' }}
+          label="Hired This Period"
+          value={hiredCandidates.length}
+          color="success"
         />
       </div>
 
-      <div className={styles.mainGrid}>
+      <div className={styles.grid}>
         <Card padding="none">
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Recent Candidates</h2>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Active Jobs</h2>
           </div>
-          <div className={styles.list}>
-            {recentCandidates.length === 0 && (
-              <div className={styles.emptyList}>No candidates yet</div>
-            )}
-            {recentCandidates.map(candidate => (
-              <div
-                key={candidate.id}
-                className={styles.listItem}
-                onClick={() => navigate(`/candidates/${candidate.id}`)}
-              >
-                <Avatar
-                  initials={candidate.avatar || candidate.name.slice(0, 2).toUpperCase()}
-                  size="sm"
-                />
-                <div className={styles.listItemInfo}>
-                  <span className={styles.listItemName}>{candidate.name}</span>
-                  <span className={styles.listItemSub}>
-                    {candidate.currentRole || candidate.email}
-                    {candidate.stage ? ` · ${candidate.stage}` : ''}
-                  </span>
-                </div>
-                <span className={`${styles.badge} ${styles[`badge_${candidate.status}`]}`}>
-                  {candidate.status}
-                </span>
+          {openJobs.slice(0, 5).length === 0 && (
+            <EmptyState title="No open jobs" description="Create a new job to get started." />
+          )}
+          {openJobs.slice(0, 5).map(job => (
+            <div
+              key={job.id}
+              className={styles.listItem}
+              onClick={() => navigate(`/jobs/${job.id}`)}
+            >
+              <div>
+                <div className={styles.itemTitle}>{job.title}</div>
+                <div className={styles.itemSub}>{job.location} · {job.type}</div>
               </div>
-            ))}
-          </div>
+              <Badge variant={getStatusVariant(job.status)}>{job.status}</Badge>
+            </div>
+          ))}
         </Card>
 
         <Card padding="none">
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Open Positions</h2>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Recent Candidates</h2>
           </div>
-          <div className={styles.list}>
-            {state.jobs.filter(j => j.status === 'open').slice(0, 5).length === 0 && (
-              <div className={styles.emptyList}>No open jobs</div>
-            )}
-            {state.jobs.filter(j => j.status === 'open').slice(0, 5).map(job => (
-              <div
-                key={job.id}
-                className={styles.listItem}
-                onClick={() => navigate(`/jobs/${job.id}`)}
-              >
-                <div className={styles.jobIcon}>
-                  <Briefcase size={16} />
-                </div>
-                <div className={styles.listItemInfo}>
-                  <span className={styles.listItemName}>{job.title}</span>
-                  <span className={styles.listItemSub}>{job.department} &middot; {job.location}</span>
+          {recentCandidates.length === 0 && (
+            <EmptyState title="No candidates yet" description="Candidates will appear here." />
+          )}
+          {recentCandidates.map(candidate => (
+            <div
+              key={candidate.id}
+              className={styles.listItem}
+              onClick={() => navigate(`/candidates/${candidate.id}`)}
+            >
+              <div className={styles.candidateRow}>
+                <Avatar initials={candidate.name.split(' ').map(n => n[0]).join('')} size="sm" />
+                <div>
+                  <div className={styles.itemTitle}>{candidate.name}</div>
+                  <div className={styles.itemSub}>
+                    {candidate.status}
+                    {candidate.stage ? ` · ${candidate.stage}` : ''}
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
+              <Badge variant={getCandidateVariant(candidate.status)}>{candidate.status}</Badge>
+            </div>
+          ))}
         </Card>
       </div>
     </div>
