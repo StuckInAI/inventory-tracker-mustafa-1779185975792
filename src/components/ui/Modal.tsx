@@ -1,37 +1,31 @@
 import { useEffect } from 'react';
 import styles from './Modal.module.css';
-import Button from './Button';
 import { X } from 'lucide-react';
 
-type ModalProps = {
+export type ModalProps = {
   open: boolean;
   onClose: () => void;
-  title: string;
+  title?: string;
   children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
 };
 
-export default function Modal({ open, onClose, title, children, size = 'md' }: ModalProps) {
+export default function Modal({ open, onClose, title, children }: ModalProps) {
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [open]);
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (open) document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [open, onClose]);
 
   if (!open) return null;
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div
-        className={`${styles.modal} ${styles[size]}`}
-        onClick={(e: React.MouseEvent) => e.stopPropagation()}
-      >
+      <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <div className={styles.header}>
-          <h2 className={styles.title}>{title}</h2>
-          <Button variant="ghost" size="sm" onClick={onClose}><X size={16} /></Button>
+          {title && <h2 className={styles.title}>{title}</h2>}
+          <button className={styles.close} onClick={onClose}><X size={18} /></button>
         </div>
         <div className={styles.body}>{children}</div>
       </div>

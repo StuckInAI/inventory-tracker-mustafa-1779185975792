@@ -1,157 +1,115 @@
-import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Briefcase, Users, Calendar, Building2, TrendingUp, Clock } from 'lucide-react';
 import { useAppContext } from '@/hooks/useAppContext';
+import styles from './Dashboard.module.css';
 import StatCard from '@/components/ui/StatCard';
-import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Avatar from '@/components/ui/Avatar';
-import PageHeader from '@/components/ui/PageHeader';
-import { formatDate, timeAgo } from '@/lib/utils';
-import styles from './Dashboard.module.css';
-import type { CandidateStatus } from '@/types';
-
-const statusVariant: Record<CandidateStatus, 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'secondary'> = {
-  New: 'default',
-  Screening: 'secondary',
-  Interview: 'primary',
-  Offer: 'warning',
-  Hired: 'success',
-  Rejected: 'danger',
-  Withdrawn: 'default',
-};
+import { Briefcase, Users, Calendar, TrendingUp } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
   const { state } = useAppContext();
   const navigate = useNavigate();
 
-  const stats = useMemo(() => ({
-    openJobs: state.jobs.filter(j => j.status === 'Open').length,
-    totalCandidates: state.candidates.length,
-    scheduledInterviews: state.interviews.filter(i => i.status === 'Scheduled').length,
-    activeClients: state.clients.filter(c => c.status === 'Active').length,
-  }), [state]);
+  const openJobs = state.jobs.filter(j => j.status === 'open').length;
+  const totalCandidates = state.candidates.length;
+  const scheduledInterviews = state.interviews?.filter(i => i.status === 'scheduled').length ?? 0;
+  const hiredCandidates = state.candidates.filter(c => c.status === 'hired').length;
 
-  const recentCandidates = useMemo(() =>
-    [...state.candidates]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 6)
-  , [state.candidates]);
+  const recentJobs = state.jobs.slice(0, 5);
 
-  const upcomingInterviews = useMemo(() =>
-    state.interviews
-      .filter(i => i.status === 'Scheduled')
-      .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
-      .slice(0, 4)
-  , [state.interviews]);
+  const getJobBadgeVariant = (status: string) => {
+    if (status === 'open') return 'success';
+    if (status === 'draft') return 'default';
+    return 'warning';
+  };
 
-  const recentJobs = useMemo(() =>
-    [...state.jobs]
-      .sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime())
-      .slice(0, 4)
-  , [state.jobs]);
+  const getCandidateBadgeVariant = (status: string) => {
+    if (status === 'hired') return 'success';
+    if (status === 'rejected') return 'danger';
+    return 'primary';
+  };
+
+  const recentActivities = state.candidates
+    .flatMap(c => (c.activities ?? []).map(a => ({ ...a, candidateName: c.name, candidateId: c.id })))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 8);
 
   return (
     <div className={styles.page}>
-      <PageHeader
-        title={`Good morning, ${state.currentUser.name.split(' ')[0]} 👋`}
-        subtitle="Here's what's happening with your recruitment pipeline today."
-      />
+      <div className={styles.header}>
+        <div>
+          <h1 className={styles.title}>Dashboard</h1>
+          <p className={styles.subtitle}>Welcome back, {state.currentUser.name}</p>
+        </div>
+      </div>
 
-      <div className={styles.statsGrid}>
-        <StatCard label="Open Jobs" value={stats.openJobs} icon={<Briefcase size={20} />} trend="2 this week" trendUp color="primary" />
-        <StatCard label="Total Candidates" value={stats.totalCandidates} icon={<Users size={20} />} trend="7 this week" trendUp color="secondary" />
-        <StatCard label="Scheduled Interviews" value={stats.scheduledInterviews} icon={<Calendar size={20} />} color="warning" />
-        <StatCard label="Active Clients" value={stats.activeClients} icon={<Building2 size={20} />} color="success" />
+      <div className={styles.stats}>
+        <StatCard title="Open Jobs" value={openJobs} icon={<Briefcase size={20} />} trend="+2 this week" />
+        <StatCard title="Total Candidates" value={totalCandidates} icon={<Users size={20} />} trend="+12 this week" />
+        <StatCard title="Scheduled Interviews" value={scheduledInterviews} icon={<Calendar size={20} />} trend="+3 today" />
+        <StatCard title="Hired This Month" value={hiredCandidates} icon={<TrendingUp size={20} />} trend="+1 this week" />
       </div>
 
       <div className={styles.grid}>
-        <Card className={styles.recentCandidates}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}><Users size={16} /> Recent Candidates</h2>
-            <button className={styles.viewAll} onClick={() => navigate('/candidates')}>View All</button>
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Recent Jobs</h2>
           </div>
-          <div className={styles.candidateList}>
-            {recentCandidates.map(c => (
-              <div key={c.id} className={styles.candidateRow} onClick={() => navigate(`/candidates/${c.id}`)}>
-                <Avatar initials={c.name.split(' ').map(n => n[0]).join('')} size="sm" />
-                <div className={styles.candidateInfo}>
-                  <div className={styles.candidateName}>{c.name}</div>
-                  <div className={styles.candidateMeta}>{c.currentTitle} · {c.currentCompany}</div>
+          <div className={styles.jobList}>
+            {recentJobs.map(job => (
+              <div key={job.id} className={styles.jobRow} onClick={() => navigate(`/jobs/${job.id}`)}>
+                <div className={styles.jobInfo}>
+                  <div className={styles.jobTitle}>{job.title}</div>
+                  <div className={styles.jobMeta}>{job.department} · {job.location}</div>
                 </div>
-                <Badge variant={statusVariant[c.status]}>{c.status}</Badge>
+                <div className={styles.jobRight}>
+                  <Badge variant={getJobBadgeVariant(job.status)}>{job.status}</Badge>
+                  <span className={styles.candidateCount}>{job.candidatesCount ?? 0} candidates</span>
+                </div>
               </div>
             ))}
           </div>
-        </Card>
+        </div>
 
-        <div className={styles.rightCol}>
-          <Card>
-            <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}><Calendar size={16} /> Upcoming Interviews</h2>
-              <button className={styles.viewAll} onClick={() => navigate('/interviews')}>View All</button>
-            </div>
-            {upcomingInterviews.length === 0 ? (
-              <p className={styles.empty}>No upcoming interviews.</p>
-            ) : (
-              <div className={styles.interviewList}>
-                {upcomingInterviews.map(interview => (
-                  <div key={interview.id} className={styles.interviewRow}>
-                    <div className={styles.interviewTime}>
-                      <Clock size={13} />
-                      {new Date(interview.scheduledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      {' '}
-                      {new Date(interview.scheduledAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                    <div className={styles.interviewName}>{interview.candidateName}</div>
-                    <div className={styles.interviewRole}>{interview.jobTitle}</div>
-                    <Badge variant="secondary">{interview.type}</Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-
-          <Card>
-            <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}><TrendingUp size={16} /> Active Jobs</h2>
-              <button className={styles.viewAll} onClick={() => navigate('/jobs')}>View All</button>
-            </div>
-            <div className={styles.jobList}>
-              {recentJobs.map(job => (
-                <div key={job.id} className={styles.jobRow} onClick={() => navigate(`/jobs/${job.id}`)}>
-                  <div>
-                    <div className={styles.jobTitle}>{job.title}</div>
-                    <div className={styles.jobMeta}>{job.clientName} · {formatDate(job.postedAt)}</div>
-                  </div>
-                  <div className={styles.jobRight}>
-                    <span className={styles.jobCandidates}>{job.candidatesCount} candidates</span>
-                    <Badge variant={job.status === 'Open' ? 'success' : job.status === 'Draft' ? 'default' : 'warning'}>{job.status}</Badge>
-                  </div>
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Recent Activity</h2>
+          </div>
+          <div className={styles.activityList}>
+            {recentActivities.map(act => (
+              <div key={act.id} className={styles.activityRow}>
+                <Avatar initials={act.candidateName.slice(0, 2).toUpperCase()} size="sm" />
+                <div className={styles.activityInfo}>
+                  <div className={styles.activityText}><strong>{act.candidateName}</strong> {act.description}</div>
+                  <div className={styles.activityTime}>{formatDate(act.createdAt)}</div>
                 </div>
-              ))}
-            </div>
-          </Card>
+              </div>
+            ))}
+            {recentActivities.length === 0 && (
+              <div className={styles.empty}>No recent activity</div>
+            )}
+          </div>
         </div>
       </div>
 
-      <Card className={styles.activityCard}>
-        <div className={styles.cardHeader}>
-          <h2 className={styles.cardTitle}><Clock size={16} /> Recent Activity</h2>
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Recent Candidates</h2>
         </div>
-        <div className={styles.activityList}>
-          {state.candidates.flatMap(c => c.activities.map(a => ({ ...a, candidateName: c.name, candidateId: c.id }))).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 8).map(act => (
-            <div key={act.id} className={styles.activityRow}>
-              <div className={styles.activityDot} />
-              <div className={styles.activityContent}>
-                <span className={styles.activityName} onClick={() => navigate(`/candidates/${act.candidateId}`)}>{act.candidateName}</span>
-                {' — '}{act.description}
+        <div className={styles.candidateList}>
+          {state.candidates.slice(0, 6).map(c => (
+            <div key={c.id} className={styles.candidateRow} onClick={() => navigate(`/candidates/${c.id}`)}>
+              <Avatar initials={c.name.slice(0, 2).toUpperCase()} />
+              <div className={styles.candidateInfo}>
+                <div className={styles.candidateName}>{c.name}</div>
+                <div className={styles.candidateMeta}>{c.currentTitle ?? ''}{c.currentCompany ? ` · ${c.currentCompany}` : ''}</div>
               </div>
-              <div className={styles.activityTime}>{timeAgo(act.createdAt)}</div>
+              <Badge variant={getCandidateBadgeVariant(c.status)}>{c.status}</Badge>
             </div>
           ))}
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

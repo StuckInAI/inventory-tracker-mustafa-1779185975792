@@ -1,76 +1,69 @@
 import { useState } from 'react';
-import { UserCog, Plus } from 'lucide-react';
 import { useAppContext } from '@/hooks/useAppContext';
 import PageHeader from '@/components/ui/PageHeader';
 import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import Avatar from '@/components/ui/Avatar';
-import EmptyState from '@/components/ui/EmptyState';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
-import type { TeamMember } from '@/types';
+import Avatar from '@/components/ui/Avatar';
+import { Plus } from 'lucide-react';
+import styles from './Jobs.module.css';
 
 export default function Team() {
   const { state, dispatch } = useAppContext();
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: '', role: '', email: '' });
+  const [form, setForm] = useState({ name: '', email: '', role: '', department: '' });
 
-  function handleAdd() {
-    const newMember: TeamMember = {
-      id: `u${Date.now()}`,
-      name: form.name,
-      role: form.role,
-      avatar: form.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
-      email: form.email,
-    };
-    dispatch({ type: 'ADD_TEAM_MEMBER', payload: newMember });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const initials = form.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    dispatch({
+      type: 'ADD_TEAM_MEMBER',
+      payload: {
+        id: Date.now().toString(),
+        name: form.name,
+        email: form.email,
+        role: form.role,
+        department: form.department,
+        avatar: initials,
+        createdAt: new Date().toISOString(),
+      },
+    });
     setShowModal(false);
-    setForm({ name: '', role: '', email: '' });
-  }
+    setForm({ name: '', email: '', role: '', department: '' });
+  };
 
   return (
     <div style={{ padding: '32px' }}>
       <PageHeader
         title="Team"
-        subtitle="Manage your recruitment team"
-        actions={
-          <Button onClick={() => setShowModal(true)}>
-            <Plus size={16} /> Add Member
-          </Button>
-        }
+        subtitle={`${state.team.length} members`}
+        action={<Button onClick={() => setShowModal(true)}><Plus size={16} /> Add Member</Button>}
       />
 
-      {state.team.length === 0 ? (
-        <EmptyState
-          icon={<UserCog size={40} />}
-          title="No team members"
-          description="Add your first team member."
-          action={<Button onClick={() => setShowModal(true)}>Add Member</Button>}
-        />
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
-          {state.team.map(member => (
-            <Card key={member.id}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Avatar initials={member.avatar} size="lg" />
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '14px' }}>{member.name}</div>
-                  <div style={{ color: 'var(--color-gray-500)', fontSize: '13px' }}>{member.role}</div>
-                  {member.email && <div style={{ color: 'var(--color-gray-400)', fontSize: '12px', marginTop: '4px' }}>{member.email}</div>}
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', marginTop: '24px' }}>
+        {state.team.map(member => (
+          <div key={member.id} style={{ background: 'white', border: '1px solid var(--color-gray-200)', borderRadius: '12px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <Avatar initials={member.avatar} size="lg" />
+            <div>
+              <div style={{ fontWeight: 700, color: 'var(--color-gray-800)' }}>{member.name}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-gray-500)' }}>{member.role}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-gray-400)', marginTop: 4 }}>{member.email}</div>
+            </div>
+          </div>
+        ))}
+      </div>
 
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Add Team Member">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <Input label="Full Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
-          <Input label="Role" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} />
-          <Input label="Email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} type="email" />
-          <Button onClick={handleAdd} fullWidth>Add Member</Button>
-        </div>
+      <Modal open={showModal} onClose={() => setShowModal(false)} title="Add Team Member">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <Input label="Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
+          <Input label="Email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
+          <Input label="Role" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} required />
+          <Input label="Department" value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} />
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+            <Button variant="secondary" onClick={() => setShowModal(false)} type="button">Cancel</Button>
+            <Button type="submit">Add Member</Button>
+          </div>
+        </form>
       </Modal>
     </div>
   );

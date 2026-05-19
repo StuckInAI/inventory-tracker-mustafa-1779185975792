@@ -1,41 +1,38 @@
-export type TeamMember = {
-  id: string;
-  name: string;
-  role: string;
-  avatar: string;
-  email?: string;
-  department?: string;
-};
-
-export type Client = {
-  id: string;
-  name: string;
-  industry: string;
-  contact: string;
-  email: string;
-  phone?: string;
-  website?: string;
-  location?: string;
-  status: 'active' | 'inactive';
-  jobsCount?: number;
-  createdAt: string;
-};
+export type JobStatus = 'open' | 'closed' | 'draft' | 'on-hold';
+export type CandidateStatus = 'active' | 'inactive' | 'hired' | 'rejected';
 
 export type Job = {
   id: string;
   title: string;
-  clientId: string;
-  location: string;
-  type: 'full-time' | 'part-time' | 'contract' | 'remote';
-  status: 'open' | 'closed' | 'draft' | 'on-hold';
   department: string;
+  location: string;
+  type: string;
+  status: JobStatus;
+  description: string;
+  requirements: string[];
   salary?: string;
-  description?: string;
-  requirements?: string[];
-  recruiterId: string;
+  clientId?: string;
+  clientName?: string;
+  recruiterName?: string;
+  candidatesCount?: number;
+  postedAt?: string;
+  closingDate?: string;
+  pipeline?: PipelineStage[];
   createdAt: string;
-  updatedAt?: string;
-  applicantsCount?: number;
+  updatedAt: string;
+};
+
+export type PipelineStage = {
+  id: string;
+  name: string;
+  candidateIds: string[];
+};
+
+export type Activity = {
+  id: string;
+  type: string;
+  description: string;
+  createdAt: string;
 };
 
 export type Candidate = {
@@ -44,47 +41,63 @@ export type Candidate = {
   email: string;
   phone?: string;
   location?: string;
-  title?: string;
-  skills?: string[];
+  status: CandidateStatus;
+  currentJobId?: string;
+  currentTitle?: string;
+  currentCompany?: string;
+  currentStage?: string;
+  skills: string[];
   experience?: number;
-  education?: string;
-  resume?: string;
-  avatar: string;
-  status: 'active' | 'inactive' | 'hired' | 'rejected';
-  source?: string;
+  resumeUrl?: string;
+  activities?: Activity[];
+  notes?: string;
   createdAt: string;
+  updatedAt: string;
 };
 
-export type ApplicationStage =
-  | 'applied'
-  | 'screening'
-  | 'interview'
-  | 'offer'
-  | 'hired'
-  | 'rejected';
-
-export type Application = {
+export type Client = {
   id: string;
-  jobId: string;
-  candidateId: string;
-  stage: ApplicationStage;
-  appliedAt: string;
-  updatedAt?: string;
+  name: string;
+  industry: string;
+  location?: string;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  website?: string;
   notes?: string;
-  rating?: number;
+  jobIds: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type TeamMember = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  department?: string;
+  avatar: string;
+  createdAt: string;
 };
 
 export type Interview = {
   id: string;
-  applicationId: string;
-  jobId: string;
   candidateId: string;
-  interviewerId: string;
-  type: 'phone' | 'video' | 'onsite' | 'technical';
+  jobId: string;
+  interviewerId?: string;
   scheduledAt: string;
   duration?: number;
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
-  feedback?: string;
-  rating?: number;
+  type?: string;
+  status: 'scheduled' | 'completed' | 'cancelled';
   notes?: string;
+  createdAt: string;
+};
+
+export type AppState = {
+  jobs: Job[];
+  candidates: Candidate[];
+  clients: Client[];
+  team: TeamMember[];
+  interviews: Interview[];
+  currentUser: TeamMember;
 };
