@@ -1,50 +1,58 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Search, Plus, Mail, Phone, MapPin } from 'lucide-react';
+import { Users, Plus, Search } from 'lucide-react';
 import { useAppContext } from '@/hooks/useAppContext';
 import PageHeader from '@/components/ui/PageHeader';
-import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Avatar from '@/components/ui/Avatar';
 import EmptyState from '@/components/ui/EmptyState';
+import Modal from '@/components/ui/Modal';
+import type { Candidate } from '@/types';
 
 export default function Candidates() {
-  const { state } = useAppContext();
+  const { state, dispatch } = useAppContext();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', title: '', location: '' });
 
   const filtered = state.candidates.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.email.toLowerCase().includes(search.toLowerCase()) ||
-    c.currentTitle?.toLowerCase().includes(search.toLowerCase())
+    c.email.toLowerCase().includes(search.toLowerCase())
   );
 
-  const getStatusVariant = (status: string) => {
-    const map: Record<string, 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'secondary'> = {
-      active: 'success',
-      inactive: 'default',
-      placed: 'primary',
-      blacklisted: 'danger',
+  function handleAdd() {
+    const newCandidate: Candidate = {
+      id: `ca${Date.now()}`,
+      name: form.name,
+      email: form.email,
+      title: form.title,
+      location: form.location,
+      avatar: form.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+      status: 'active',
+      createdAt: new Date().toISOString().split('T')[0],
     };
-    return map[status] ?? 'default';
-  };
+    dispatch({ type: 'ADD_CANDIDATE', payload: newCandidate });
+    setShowModal(false);
+    setForm({ name: '', email: '', title: '', location: '' });
+  }
 
   return (
-    <div style={{ padding: 'var(--spacing-6)' }}>
+    <div style={{ padding: '32px' }}>
       <PageHeader
         title="Candidates"
-        subtitle={`${state.candidates.length} total candidates`}
-        action={
-          <Button>
-            <Plus size={16} />
-            Add Candidate
+        subtitle="Manage your candidate pipeline"
+        actions={
+          <Button onClick={() => setShowModal(true)}>
+            <Plus size={16} /> Add Candidate
           </Button>
         }
       />
 
-      <div style={{ marginBottom: 'var(--spacing-4)' }}>
+      <div style={{ marginBottom: '20px' }}>
         <Input
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -57,55 +65,41 @@ export default function Candidates() {
         <EmptyState
           icon={<Users size={40} />}
           title="No candidates found"
-          description="Try adjusting your search criteria."
+          description="Add your first candidate to get started."
+          action={<Button onClick={() => setShowModal(true)}>Add Candidate</Button>}
         />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
           {filtered.map(candidate => (
             <Card key={candidate.id} onClick={() => navigate(`/candidates/${candidate.id}`)}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)' }}>
-                <Avatar initials={candidate.name.split(' ').map((n: string) => n[0]).join('').slice(0,2)} size="md" />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', flexWrap: 'wrap' }}>
-                    <span style={{ fontWeight: 700, fontSize: 14 }}>{candidate.name}</span>
-                    <Badge variant={getStatusVariant(candidate.status)}>{candidate.status}</Badge>
-                  </div>
-                  {candidate.currentTitle && (
-                    <div style={{ fontSize: 13, color: 'var(--color-gray-600)', marginTop: 2 }}>{candidate.currentTitle}</div>
-                  )}
-                  <div style={{ display: 'flex', gap: 'var(--spacing-4)', marginTop: 4, flexWrap: 'wrap' }}>
-                    {candidate.email && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--color-gray-500)' }}>
-                        <Mail size={12} /> {candidate.email}
-                      </span>
-                    )}
-                    {candidate.phone && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--color-gray-500)' }}>
-                        <Phone size={12} /> {candidate.phone}
-                      </span>
-                    )}
-                    {candidate.location && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--color-gray-500)' }}>
-                        <MapPin size={12} /> {candidate.location}
-                      </span>
-                    )}
-                  </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                <Avatar initials={candidate.avatar} size="md" />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '14px' }}>{candidate.name}</div>
+                  <div style={{ color: 'var(--color-gray-500)', fontSize: '13px' }}>{candidate.title}</div>
                 </div>
-                {candidate.skills && candidate.skills.length > 0 && (
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', maxWidth: 200 }}>
-                    {candidate.skills.slice(0, 3).map((skill: string) => (
-                      <Badge key={skill} variant="secondary">{skill}</Badge>
-                    ))}
-                    {candidate.skills.length > 3 && (
-                      <Badge variant="outline">+{candidate.skills.length - 3}</Badge>
-                    )}
-                  </div>
-                )}
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--color-gray-600)', marginBottom: '8px' }}>{candidate.email}</div>
+              {candidate.location && <div style={{ fontSize: '13px', color: 'var(--color-gray-500)' }}>{candidate.location}</div>}
+              <div style={{ marginTop: '12px' }}>
+                <Badge variant={candidate.status === 'active' ? 'success' : candidate.status === 'hired' ? 'primary' : 'danger'}>
+                  {candidate.status}
+                </Badge>
               </div>
             </Card>
           ))}
         </div>
       )}
+
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Add Candidate">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <Input label="Full Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
+          <Input label="Email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} type="email" required />
+          <Input label="Job Title" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+          <Input label="Location" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} />
+          <Button onClick={handleAdd} fullWidth>Add Candidate</Button>
+        </div>
+      </Modal>
     </div>
   );
 }

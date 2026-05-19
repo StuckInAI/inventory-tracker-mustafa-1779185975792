@@ -1,6 +1,6 @@
 import styles from './PageHeader.module.css';
 
-type PageHeaderProps = {
+export type PageHeaderProps = {
   title: string;
   subtitle?: string;
   actions?: React.ReactNode;

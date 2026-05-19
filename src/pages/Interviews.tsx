@@ -1,80 +1,78 @@
-import React, { useState } from 'react';
-import { Calendar, Clock, User, Briefcase } from 'lucide-react';
+import { useState } from 'react';
+import { Calendar, Plus } from 'lucide-react';
 import { useAppContext } from '@/hooks/useAppContext';
 import PageHeader from '@/components/ui/PageHeader';
+import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import Button from '@/components/ui/Button';
 import EmptyState from '@/components/ui/EmptyState';
+import Modal from '@/components/ui/Modal';
+import Select from '@/components/ui/Select';
+import type { Interview } from '@/types';
 
 export default function Interviews() {
-  const { state } = useAppContext();
+  const { state, dispatch } = useAppContext();
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({
+    applicationId: '',
+    jobId: '',
+    candidateId: '',
+    type: 'video' as Interview['type'],
+    scheduledAt: '',
+  });
 
-  const interviews = state.interviews || [];
-
-  const getStatusVariant = (status: string): 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'secondary' => {
-    const map: Record<string, 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'secondary'> = {
-      scheduled: 'primary',
-      completed: 'success',
-      cancelled: 'danger',
-      pending: 'warning',
+  function handleAdd() {
+    const newInterview: Interview = {
+      id: `iv${Date.now()}`,
+      applicationId: form.applicationId,
+      jobId: form.jobId,
+      candidateId: form.candidateId,
+      interviewerId: state.currentUser.id,
+      type: form.type,
+      scheduledAt: form.scheduledAt,
+      status: 'scheduled',
     };
-    return map[status] ?? 'default';
-  };
+    dispatch({ type: 'ADD_INTERVIEW', payload: newInterview });
+    setShowModal(false);
+  }
 
   return (
-    <div style={{ padding: 'var(--spacing-6)' }}>
+    <div style={{ padding: '32px' }}>
       <PageHeader
         title="Interviews"
-        subtitle={`${interviews.length} scheduled interviews`}
-        action={
-          <Button>
-            <Calendar size={16} />
-            Schedule Interview
+        subtitle="Schedule and manage interviews"
+        actions={
+          <Button onClick={() => setShowModal(true)}>
+            <Plus size={16} /> Schedule Interview
           </Button>
         }
       />
 
-      {interviews.length === 0 ? (
+      {state.interviews.length === 0 ? (
         <EmptyState
           icon={<Calendar size={40} />}
           title="No interviews scheduled"
-          description="Schedule interviews with candidates to see them here."
+          description="Schedule your first interview."
+          action={<Button onClick={() => setShowModal(true)}>Schedule Interview</Button>}
         />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
-          {interviews.map((interview: any) => {
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {state.interviews.map(interview => {
             const candidate = state.candidates.find(c => c.id === interview.candidateId);
             const job = state.jobs.find(j => j.id === interview.jobId);
             return (
               <Card key={interview.id}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)', flexWrap: 'wrap' }}>
-                  <div style={{ flex: 1, minWidth: 200 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', marginBottom: 4 }}>
-                      <span style={{ fontWeight: 700, fontSize: 14 }}>{interview.type || 'Interview'}</span>
-                      <Badge variant={getStatusVariant(interview.status)}>{interview.status}</Badge>
-                    </div>
-                    <div style={{ display: 'flex', gap: 'var(--spacing-4)', flexWrap: 'wrap' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--color-gray-500)' }}>
-                        <User size={12} /> {candidate?.name || 'Unknown Candidate'}
-                      </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--color-gray-500)' }}>
-                        <Briefcase size={12} /> {job?.title || 'Unknown Job'}
-                      </span>
-                    </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontWeight: 700 }}>{candidate?.name ?? 'Unknown'}</div>
+                    <div style={{ color: 'var(--color-gray-500)', fontSize: '13px' }}>{job?.title ?? 'Unknown'}</div>
+                    <div style={{ fontSize: '13px', marginTop: '4px' }}>{new Date(interview.scheduledAt).toLocaleString()}</div>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    {interview.date && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--color-gray-700)' }}>
-                        <Calendar size={14} />
-                        {new Date(interview.date).toLocaleDateString()}
-                      </div>
-                    )}
-                    {interview.time && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--color-gray-500)', marginTop: 2 }}>
-                        <Clock size={12} /> {interview.time}
-                      </div>
-                    )}
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <Badge variant="secondary">{interview.type}</Badge>
+                    <Badge variant={interview.status === 'scheduled' ? 'primary' : interview.status === 'completed' ? 'success' : 'danger'}>
+                      {interview.status}
+                    </Badge>
                   </div>
                 </div>
               </Card>
@@ -82,6 +80,35 @@ export default function Interviews() {
           })}
         </div>
       )}
+
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Schedule Interview">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <Select
+            label="Candidate"
+            value={form.candidateId}
+            onChange={e => setForm(f => ({ ...f, candidateId: e.target.value }))}
+            options={state.candidates.map(c => ({ value: c.id, label: c.name }))}
+          />
+          <Select
+            label="Job"
+            value={form.jobId}
+            onChange={e => setForm(f => ({ ...f, jobId: e.target.value }))}
+            options={state.jobs.map(j => ({ value: j.id, label: j.title }))}
+          />
+          <Select
+            label="Interview Type"
+            value={form.type}
+            onChange={e => setForm(f => ({ ...f, type: e.target.value as Interview['type'] }))}
+            options={[
+              { value: 'phone', label: 'Phone' },
+              { value: 'video', label: 'Video' },
+              { value: 'onsite', label: 'On-site' },
+              { value: 'technical', label: 'Technical' },
+            ]}
+          />
+          <Button onClick={handleAdd} fullWidth>Schedule</Button>
+        </div>
+      </Modal>
     </div>
   );
 }

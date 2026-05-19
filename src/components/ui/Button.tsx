@@ -1,10 +1,11 @@
 import clsx from 'clsx';
 import styles from './Button.module.css';
+import type { CSSProperties } from 'react';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
-type ButtonProps = {
+export type ButtonProps = {
   children: React.ReactNode;
   variant?: ButtonVariant;
   size?: ButtonSize;
@@ -13,6 +14,7 @@ type ButtonProps = {
   disabled?: boolean;
   className?: string;
   fullWidth?: boolean;
+  style?: CSSProperties;
 };
 
 export default function Button({
@@ -24,12 +26,14 @@ export default function Button({
   disabled,
   className,
   fullWidth,
+  style,
 }: ButtonProps) {
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
+      style={style}
       className={clsx(styles.btn, styles[variant], styles[size], fullWidth && styles.fullWidth, className)}
     >
       {children}

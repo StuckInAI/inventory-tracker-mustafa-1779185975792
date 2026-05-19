@@ -1,9 +1,8 @@
-import React from 'react';
-import { BarChart3, TrendingUp, Users, Briefcase, CheckCircle } from 'lucide-react';
+import { BarChart3, Briefcase, Users, FileText } from 'lucide-react';
 import { useAppContext } from '@/hooks/useAppContext';
 import PageHeader from '@/components/ui/PageHeader';
-import Card from '@/components/ui/Card';
 import StatCard from '@/components/ui/StatCard';
+import Card from '@/components/ui/Card';
 
 export default function Reports() {
   const { state } = useAppContext();
@@ -11,80 +10,67 @@ export default function Reports() {
   const totalJobs = state.jobs.length;
   const totalCandidates = state.candidates.length;
   const totalApplications = state.applications.length;
-  const hiredCount = state.applications.filter(a => a.stage === 'Hired').length;
-  const conversionRate = totalApplications > 0 ? ((hiredCount / totalApplications) * 100).toFixed(1) : '0';
-
-  const stageBreakdown = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired', 'Rejected'].map(stage => ({
-    stage,
-    count: state.applications.filter(a => a.stage === stage).length,
-  }));
-
-  const maxCount = Math.max(...stageBreakdown.map(s => s.count), 1);
+  const hired = state.applications.filter(a => a.stage === 'hired').length;
+  const conversionRate = totalApplications > 0 ? ((hired / totalApplications) * 100).toFixed(1) + '%' : '0%';
 
   return (
-    <div style={{ padding: 'var(--spacing-6)' }}>
-      <PageHeader
-        title="Reports"
-        subtitle="Analytics and insights for your recruitment pipeline"
-      />
+    <div style={{ padding: '32px' }}>
+      <PageHeader title="Reports" subtitle="Recruitment analytics and insights" />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--spacing-4)', marginBottom: 'var(--spacing-6)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
         <StatCard
-          title="Total Jobs"
+          label="Total Jobs"
           value={totalJobs}
           icon={<Briefcase size={20} />}
         />
         <StatCard
-          title="Candidates"
+          label="Candidates"
           value={totalCandidates}
           icon={<Users size={20} />}
         />
         <StatCard
-          title="Applications"
+          label="Applications"
           value={totalApplications}
-          icon={<BarChart3 size={20} />}
+          icon={<FileText size={20} />}
         />
         <StatCard
-          title="Conversion Rate"
-          value={`${conversionRate}%`}
-          icon={<TrendingUp size={20} />}
+          label="Conversion Rate"
+          value={conversionRate}
+          icon={<BarChart3 size={20} />}
         />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-5)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
         <Card>
-          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 'var(--spacing-4)' }}>Pipeline Breakdown</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
-            {stageBreakdown.map(({ stage, count }) => (
-              <div key={stage}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 13, color: 'var(--color-gray-700)' }}>{stage}</span>
-                  <span style={{ fontSize: 13, fontWeight: 600 }}>{count}</span>
+          <h3 style={{ marginBottom: '16px', fontSize: '15px', fontWeight: 700 }}>Applications by Stage</h3>
+          {['applied', 'screening', 'interview', 'offer', 'hired', 'rejected'].map(stage => {
+            const count = state.applications.filter(a => a.stage === stage).length;
+            const pct = totalApplications > 0 ? (count / totalApplications) * 100 : 0;
+            return (
+              <div key={stage} style={{ marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}>
+                  <span style={{ textTransform: 'capitalize' }}>{stage}</span>
+                  <span style={{ fontWeight: 600 }}>{count}</span>
                 </div>
-                <div style={{ height: 6, background: 'var(--color-gray-100)', borderRadius: 9999 }}>
-                  <div style={{ height: '100%', width: `${(count / maxCount) * 100}%`, background: 'var(--color-primary)', borderRadius: 9999, transition: 'width 0.3s' }} />
+                <div style={{ height: '6px', background: 'var(--color-gray-100)', borderRadius: '9999px' }}>
+                  <div style={{ height: '100%', width: `${pct}%`, background: 'var(--color-primary)', borderRadius: '9999px' }} />
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </Card>
 
         <Card>
-          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 'var(--spacing-4)' }}>Hiring Summary</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)', padding: 'var(--spacing-3)', background: 'var(--color-success-light)', borderRadius: 'var(--radius-md)' }}>
-              <CheckCircle size={20} style={{ color: '#15803d' }} />
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 16 }}>{hiredCount}</div>
-                <div style={{ fontSize: 12, color: '#15803d' }}>Total Hired</div>
+          <h3 style={{ marginBottom: '16px', fontSize: '15px', fontWeight: 700 }}>Jobs by Status</h3>
+          {['open', 'closed', 'draft', 'on-hold'].map(status => {
+            const count = state.jobs.filter(j => j.status === status).length;
+            return (
+              <div key={status} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--color-gray-100)', fontSize: '13px' }}>
+                <span style={{ textTransform: 'capitalize' }}>{status}</span>
+                <span style={{ fontWeight: 700 }}>{count}</span>
               </div>
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--color-gray-600)', lineHeight: 1.7 }}>
-              <div>Active Jobs: <strong>{state.jobs.filter(j => j.status === 'active').length}</strong></div>
-              <div>Total Clients: <strong>{(state.clients || []).length}</strong></div>
-              <div>Avg. Applications/Job: <strong>{totalJobs > 0 ? (totalApplications / totalJobs).toFixed(1) : '0'}</strong></div>
-            </div>
-          </div>
+            );
+          })}
         </Card>
       </div>
     </div>

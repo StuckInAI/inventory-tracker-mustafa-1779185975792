@@ -1,151 +1,90 @@
-export type Role = 'Admin' | 'Recruiter' | 'Hiring Manager' | 'Interviewer';
-
-export type JobStatus = 'Open' | 'Closed' | 'Draft' | 'On Hold';
-export type JobType = 'Full-time' | 'Part-time' | 'Contract' | 'Internship';
-
-export type CandidateStatus =
-  | 'New'
-  | 'Screening'
-  | 'Interview'
-  | 'Offer'
-  | 'Hired'
-  | 'Rejected'
-  | 'Withdrawn';
-
-export type InterviewType = 'Phone Screen' | 'Video' | 'Onsite' | 'Technical' | 'Panel';
-export type InterviewStatus = 'Scheduled' | 'Completed' | 'Cancelled' | 'No-show';
-
-export type ClientStatus = 'Active' | 'Inactive' | 'Prospect';
-
-export interface TeamMember {
+export type TeamMember = {
   id: string;
   name: string;
-  email: string;
-  role: Role;
+  role: string;
   avatar: string;
-  department: string;
-  joinedAt: string;
-  active: boolean;
-}
+  email?: string;
+  department?: string;
+};
 
-export interface Client {
+export type Client = {
   id: string;
   name: string;
   industry: string;
-  website: string;
-  contactName: string;
-  contactEmail: string;
-  contactPhone: string;
-  status: ClientStatus;
-  logoInitials: string;
-  jobsCount: number;
-  placementsCount: number;
+  contact: string;
+  email: string;
+  phone?: string;
+  website?: string;
+  location?: string;
+  status: 'active' | 'inactive';
+  jobsCount?: number;
   createdAt: string;
-  notes: string;
-}
+};
 
-export interface Job {
+export type Job = {
   id: string;
   title: string;
   clientId: string;
-  clientName: string;
-  department: string;
   location: string;
-  type: JobType;
-  status: JobStatus;
-  salary: string;
-  description: string;
-  requirements: string[];
-  postedAt: string;
-  closingDate: string;
+  type: 'full-time' | 'part-time' | 'contract' | 'remote';
+  status: 'open' | 'closed' | 'draft' | 'on-hold';
+  department: string;
+  salary?: string;
+  description?: string;
+  requirements?: string[];
   recruiterId: string;
-  recruiterName: string;
-  candidatesCount: number;
-  pipeline: PipelineStage[];
-}
+  createdAt: string;
+  updatedAt?: string;
+  applicantsCount?: number;
+};
 
-export interface PipelineStage {
-  id: string;
-  name: string;
-  order: number;
-  candidateIds: string[];
-}
-
-export interface Candidate {
+export type Candidate = {
   id: string;
   name: string;
   email: string;
-  phone: string;
-  location: string;
-  currentTitle: string;
-  currentCompany: string;
-  experience: number;
-  skills: string[];
-  status: CandidateStatus;
-  source: string;
-  resumeUrl: string;
-  linkedinUrl: string;
-  appliedJobIds: string[];
-  currentJobId: string;
-  currentStage: string;
-  rating: number;
-  tags: string[];
-  notes: Note[];
-  activities: Activity[];
+  phone?: string;
+  location?: string;
+  title?: string;
+  skills?: string[];
+  experience?: number;
+  education?: string;
+  resume?: string;
+  avatar: string;
+  status: 'active' | 'inactive' | 'hired' | 'rejected';
+  source?: string;
   createdAt: string;
-  updatedAt: string;
-}
+};
 
-export interface Note {
-  id: string;
-  authorId: string;
-  authorName: string;
-  content: string;
-  createdAt: string;
-}
+export type ApplicationStage =
+  | 'applied'
+  | 'screening'
+  | 'interview'
+  | 'offer'
+  | 'hired'
+  | 'rejected';
 
-export interface Activity {
+export type Application = {
   id: string;
-  type: 'stage_change' | 'note_added' | 'interview_scheduled' | 'email_sent' | 'status_change' | 'application';
-  description: string;
-  createdAt: string;
-  authorName: string;
-}
-
-export interface Interview {
-  id: string;
-  candidateId: string;
-  candidateName: string;
   jobId: string;
-  jobTitle: string;
-  clientName: string;
-  type: InterviewType;
-  status: InterviewStatus;
-  scheduledAt: string;
-  duration: number;
-  interviewers: string[];
-  location: string;
-  meetingLink: string;
-  feedback: InterviewFeedback[];
-  notes: string;
-}
+  candidateId: string;
+  stage: ApplicationStage;
+  appliedAt: string;
+  updatedAt?: string;
+  notes?: string;
+  rating?: number;
+};
 
-export interface InterviewFeedback {
+export type Interview = {
   id: string;
+  applicationId: string;
+  jobId: string;
+  candidateId: string;
   interviewerId: string;
-  interviewerName: string;
-  rating: number;
-  strengths: string;
-  weaknesses: string;
-  recommendation: 'Strong Yes' | 'Yes' | 'Maybe' | 'No' | 'Strong No';
-  submittedAt: string;
-}
-
-export interface AppState {
-  currentUser: TeamMember;
-  team: TeamMember[];
-  clients: Client[];
-  jobs: Job[];
-  candidates: Candidate[];
-  interviews: Interview[];
-}
+  type: 'phone' | 'video' | 'onsite' | 'technical';
+  scheduledAt: string;
+  duration?: number;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
+  feedback?: string;
+  rating?: number;
+  notes?: string;
+};

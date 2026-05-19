@@ -1,48 +1,56 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Search, Plus, Globe, Phone } from 'lucide-react';
+import { Building2, Plus, Search } from 'lucide-react';
 import { useAppContext } from '@/hooks/useAppContext';
 import PageHeader from '@/components/ui/PageHeader';
-import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import EmptyState from '@/components/ui/EmptyState';
+import Modal from '@/components/ui/Modal';
+import type { Client } from '@/types';
 
 export default function Clients() {
-  const { state } = useAppContext();
+  const { state, dispatch } = useAppContext();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({ name: '', industry: '', contact: '', email: '' });
 
-  const clients = state.clients || [];
-  const filtered = clients.filter((c: any) =>
+  const filtered = state.clients.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.industry?.toLowerCase().includes(search.toLowerCase())
+    c.industry.toLowerCase().includes(search.toLowerCase())
   );
 
-  const getStatusVariant = (status: string): 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'secondary' => {
-    const map: Record<string, 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'secondary'> = {
-      active: 'success',
-      inactive: 'default',
-      prospect: 'warning',
+  function handleAdd() {
+    const newClient: Client = {
+      id: `c${Date.now()}`,
+      name: form.name,
+      industry: form.industry,
+      contact: form.contact,
+      email: form.email,
+      status: 'active',
+      createdAt: new Date().toISOString().split('T')[0],
     };
-    return map[status] ?? 'default';
-  };
+    dispatch({ type: 'ADD_CLIENT', payload: newClient });
+    setShowModal(false);
+    setForm({ name: '', industry: '', contact: '', email: '' });
+  }
 
   return (
-    <div style={{ padding: 'var(--spacing-6)' }}>
+    <div style={{ padding: '32px' }}>
       <PageHeader
         title="Clients"
-        subtitle={`${clients.length} total clients`}
-        action={
-          <Button>
-            <Plus size={16} />
-            Add Client
+        subtitle="Manage your client relationships"
+        actions={
+          <Button onClick={() => setShowModal(true)}>
+            <Plus size={16} /> Add Client
           </Button>
         }
       />
 
-      <div style={{ marginBottom: 'var(--spacing-4)' }}>
+      <div style={{ marginBottom: '20px' }}>
         <Input
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -55,45 +63,32 @@ export default function Clients() {
         <EmptyState
           icon={<Building2 size={40} />}
           title="No clients found"
-          description="Try adjusting your search or add a new client."
+          description="Add your first client to get started."
+          action={<Button onClick={() => setShowModal(true)}>Add Client</Button>}
         />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--spacing-4)' }}>
-          {filtered.map((client: any) => (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+          {filtered.map(client => (
             <Card key={client.id} onClick={() => navigate(`/clients/${client.id}`)}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 'var(--spacing-3)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)' }}>
-                  <div style={{ width: 40, height: 40, background: 'var(--color-primary-light)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Building2 size={20} style={{ color: 'var(--color-primary)' }} />
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 14 }}>{client.name}</div>
-                    {client.industry && <div style={{ fontSize: 12, color: 'var(--color-gray-500)' }}>{client.industry}</div>}
-                  </div>
-                </div>
-                <Badge variant={getStatusVariant(client.status || 'active')}>{client.status || 'active'}</Badge>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {client.website && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-gray-500)' }}>
-                    <Globe size={12} /> {client.website}
-                  </span>
-                )}
-                {client.phone && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-gray-500)' }}>
-                    <Phone size={12} /> {client.phone}
-                  </span>
-                )}
-                {client.openJobs !== undefined && (
-                  <div style={{ marginTop: 'var(--spacing-2)', fontSize: 12, color: 'var(--color-gray-600)' }}>
-                    {client.openJobs} open position{client.openJobs !== 1 ? 's' : ''}
-                  </div>
-                )}
-              </div>
+              <div style={{ fontWeight: 700, fontSize: '15px', marginBottom: '6px' }}>{client.name}</div>
+              <div style={{ color: 'var(--color-gray-500)', fontSize: '13px', marginBottom: '4px' }}>{client.industry}</div>
+              <div style={{ fontSize: '13px', color: 'var(--color-gray-600)', marginBottom: '4px' }}>Contact: {client.contact}</div>
+              <div style={{ fontSize: '13px', color: 'var(--color-gray-600)', marginBottom: '12px' }}>{client.email}</div>
+              <Badge variant={client.status === 'active' ? 'success' : 'default'}>{client.status}</Badge>
             </Card>
           ))}
         </div>
       )}
+
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Add Client">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <Input label="Company Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
+          <Input label="Industry" value={form.industry} onChange={e => setForm(f => ({ ...f, industry: e.target.value }))} />
+          <Input label="Contact Person" value={form.contact} onChange={e => setForm(f => ({ ...f, contact: e.target.value }))} />
+          <Input label="Email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} type="email" required />
+          <Button onClick={handleAdd} fullWidth>Add Client</Button>
+        </div>
+      </Modal>
     </div>
   );
 }
