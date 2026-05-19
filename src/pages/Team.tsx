@@ -19,12 +19,20 @@ export default function Team() {
     (m.department ?? '').toLowerCase().includes(search.toLowerCase())
   );
 
+  const getRoleVariant = (role: string) => {
+    const r = role.toLowerCase();
+    if (r.includes('admin') || r.includes('manager')) return 'primary' as const;
+    if (r.includes('recruiter')) return 'success' as const;
+    if (r.includes('hr')) return 'warning' as const;
+    return 'secondary' as const;
+  };
+
   return (
     <div className={styles.page}>
       <PageHeader
         title="Team"
         subtitle={`${state.team.length} members`}
-        actions={
+        action={
           <Button size="sm" onClick={() => {}}>
             <Plus size={15} /> Add Member
           </Button>
@@ -58,14 +66,12 @@ export default function Team() {
                 <div className={styles.memberName}>{member.name}</div>
                 <div className={styles.memberRole}>{member.role}</div>
                 {member.department && (
-                  <Badge variant="secondary">{member.department}</Badge>
+                  <Badge variant={getRoleVariant(member.role)}>{member.department}</Badge>
                 )}
               </div>
               <div className={styles.memberContact}>
                 <div className={styles.memberEmail}>{member.email}</div>
-                {member.jobIds && member.jobIds.length > 0 && (
-                  <div className={styles.memberJobs}>{member.jobIds.length} job{member.jobIds.length !== 1 ? 's' : ''}</div>
-                )}
+                <div className={styles.memberJobs}>Joined {new Date(member.joinedAt).toLocaleDateString()}</div>
               </div>
             </div>
           ))}

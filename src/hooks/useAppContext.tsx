@@ -6,6 +6,8 @@ import {
   seedInterviews,
   seedClients,
   seedTeam,
+  seedTasks,
+  seedActivities,
   currentUser,
 } from '../lib/seedData';
 
@@ -15,6 +17,8 @@ const initialState: AppState = {
   interviews: seedInterviews,
   clients: seedClients,
   team: seedTeam,
+  tasks: seedTasks,
+  activities: seedActivities,
   currentUser,
 };
 
@@ -32,6 +36,15 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, candidates: state.candidates.map(c => c.id === action.payload.id ? action.payload : c) };
     case 'DELETE_CANDIDATE':
       return { ...state, candidates: state.candidates.filter(c => c.id !== action.payload) };
+    case 'MOVE_CANDIDATE_STAGE':
+      return {
+        ...state,
+        candidates: state.candidates.map(c =>
+          c.id === action.payload.id
+            ? { ...c, status: action.payload.status, updatedAt: new Date().toISOString() }
+            : c
+        ),
+      };
     case 'ADD_INTERVIEW':
       return { ...state, interviews: [...state.interviews, action.payload] };
     case 'UPDATE_INTERVIEW':
@@ -44,6 +57,14 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, clients: state.clients.map(c => c.id === action.payload.id ? action.payload : c) };
     case 'DELETE_CLIENT':
       return { ...state, clients: state.clients.filter(c => c.id !== action.payload) };
+    case 'ADD_TASK':
+      return { ...state, tasks: [...state.tasks, action.payload] };
+    case 'UPDATE_TASK':
+      return { ...state, tasks: state.tasks.map(t => t.id === action.payload.id ? action.payload : t) };
+    case 'DELETE_TASK':
+      return { ...state, tasks: state.tasks.filter(t => t.id !== action.payload) };
+    case 'ADD_ACTIVITY':
+      return { ...state, activities: [action.payload, ...state.activities] };
     default:
       return state;
   }
