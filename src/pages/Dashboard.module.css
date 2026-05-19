@@ -1,0 +1,228 @@
+.page {
+  padding: var(--spacing-6) var(--spacing-8);
+  max-width: 1400px;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+}
+
+@media (max-width: 1100px) {
+  .statsGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: var(--spacing-5);
+  margin-bottom: var(--spacing-5);
+}
+
+@media (max-width: 1100px) {
+  .grid { grid-template-columns: 1fr; }
+}
+
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-4);
+}
+
+.cardTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-gray-800);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.viewAll {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.viewAll:hover {
+  text-decoration: underline;
+}
+
+.candidateList, .interviewList, .jobList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.candidateRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: 8px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.candidateRow:hover {
+  background: var(--color-gray-50);
+}
+
+.candidateInfo { flex: 1; min-width: 0; }
+
+.candidateName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-gray-800);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.candidateMeta {
+  font-size: 11.5px;
+  color: var(--color-gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.interviewRow {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-gray-100);
+  background: var(--color-gray-50);
+}
+
+.interviewTime {
+  font-size: 11px;
+  color: var(--color-gray-500);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.interviewName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-gray-800);
+}
+
+.interviewRole {
+  font-size: 11.5px;
+  color: var(--color-gray-500);
+}
+
+.jobRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.12s;
+  gap: var(--spacing-2);
+}
+
+.jobRow:hover { background: var(--color-gray-50); }
+
+.jobTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-gray-800);
+}
+
+.jobMeta {
+  font-size: 11.5px;
+  color: var(--color-gray-500);
+}
+
+.jobRight {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.jobCandidates {
+  font-size: 11.5px;
+  color: var(--color-gray-500);
+}
+
+.activityCard {
+  margin-bottom: var(--spacing-6);
+}
+
+.activityList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.activityRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+.activityRow:last-child {
+  border-bottom: none;
+}
+
+.activityDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.activityContent {
+  flex: 1;
+  font-size: 13px;
+  color: var(--color-gray-700);
+}
+
+.activityName {
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--color-primary-dark);
+}
+
+.activityName:hover {
+  text-decoration: underline;
+}
+
+.activityTime {
+  font-size: 11.5px;
+  color: var(--color-gray-400);
+  flex-shrink: 0;
+}
+
+.empty {
+  font-size: 13px;
+  color: var(--color-gray-400);
+  text-align: center;
+  padding: var(--spacing-4);
+}
+
+.recentCandidates {
+  height: fit-content;
+}

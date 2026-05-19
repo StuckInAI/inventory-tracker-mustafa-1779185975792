@@ -1,0 +1,107 @@
+.page {
+  padding: var(--spacing-6) var(--spacing-8);
+}
+
+.filters {
+  display: flex;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-5);
+}
+
+.searchInput {
+  flex: 1;
+  max-width: 380px;
+}
+
+.filterSelect {
+  width: 160px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.jobCard {
+  background: white;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-5);
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.jobCard:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-light);
+}
+
+.jobCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  margin-bottom: 4px;
+}
+
+.jobTitle {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+}
+
+.jobClient {
+  font-size: 12.5px;
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-bottom: var(--spacing-3);
+}
+
+.jobMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  font-size: 11.5px;
+  color: var(--color-gray-500);
+  margin-bottom: var(--spacing-3);
+}
+
+.jobMeta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.jobFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--color-gray-100);
+}
+
+.salary {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-gray-700);
+}
+
+.candidateCount {
+  font-size: 11.5px;
+  color: var(--color-gray-500);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.form { display: flex; flex-direction: column; gap: var(--spacing-4); }
+
+.formRow { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-4); }
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-2);
+}

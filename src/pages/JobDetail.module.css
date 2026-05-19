@@ -1,0 +1,276 @@
+.page {
+  padding: var(--spacing-6) var(--spacing-8);
+}
+
+.notFound {
+  padding: var(--spacing-8);
+  color: var(--color-gray-500);
+}
+
+.backRow {
+  margin-bottom: var(--spacing-4);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-5);
+  flex-wrap: wrap;
+}
+
+.clientBadge {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-gray-900);
+  margin-bottom: var(--spacing-2);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+  font-size: 13px;
+  color: var(--color-gray-500);
+}
+
+.meta span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--color-gray-200);
+  margin-bottom: var(--spacing-5);
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-gray-500);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s;
+}
+
+.tab:hover { color: var(--color-gray-800); }
+
+.tabActive {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.tabCount {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 9999px;
+}
+
+.overviewGrid {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: var(--spacing-5);
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-gray-800);
+  margin-bottom: var(--spacing-3);
+}
+
+.description {
+  font-size: 13.5px;
+  color: var(--color-gray-600);
+  line-height: 1.7;
+  margin-bottom: var(--spacing-4);
+}
+
+.reqTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-gray-700);
+  margin-bottom: var(--spacing-2);
+}
+
+.reqList {
+  list-style: disc;
+  padding-left: var(--spacing-5);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reqList li {
+  font-size: 13px;
+  color: var(--color-gray-600);
+}
+
+.sideCard {
+  margin-bottom: var(--spacing-4);
+}
+
+.detailRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--color-gray-600);
+  border-bottom: 1px solid var(--color-gray-100);
+  padding-bottom: var(--spacing-2);
+}
+
+.detailRow:last-child { border-bottom: none; }
+
+.candidateTable {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.candidateRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.candidateRow:hover { background: var(--color-gray-50); }
+
+.candidateInfo { flex: 1; }
+
+.candidateName {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-gray-800);
+}
+
+.candidateMeta {
+  font-size: 12px;
+  color: var(--color-gray-500);
+}
+
+.stage {
+  font-size: 12.5px;
+  color: var(--color-gray-500);
+  padding: 2px 8px;
+  background: var(--color-gray-100);
+  border-radius: 9999px;
+}
+
+.pipeline {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.pipelineStage {
+  background: var(--color-gray-50);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+}
+
+.stageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-3);
+}
+
+.stageName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-gray-700);
+}
+
+.stageCount {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 9999px;
+}
+
+.stageCards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.pipelineCard {
+  background: white;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  transition: box-shadow 0.12s;
+}
+
+.pipelineCard:hover { box-shadow: var(--shadow-sm); }
+
+.pipelineCardName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-gray-800);
+}
+
+.pipelineCardRole {
+  font-size: 11px;
+  color: var(--color-gray-500);
+}
+
+.emptyStage {
+  font-size: 12px;
+  color: var(--color-gray-400);
+  text-align: center;
+  padding: var(--spacing-3);
+}
+
+.empty {
+  font-size: 13.5px;
+  color: var(--color-gray-400);
+  text-align: center;
+  padding: var(--spacing-6);
+}
