@@ -1,15 +1,16 @@
 import { useEffect } from 'react';
 import styles from './Modal.module.css';
-import { X } from 'lucide-react';
+import clsx from 'clsx';
 
 export type ModalProps = {
   open: boolean;
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
+  className?: string;
 };
 
-export default function Modal({ open, onClose, title, children }: ModalProps) {
+export default function Modal({ open, onClose, title, children, className }: ModalProps) {
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -22,11 +23,16 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={e => e.stopPropagation()}>
-        <div className={styles.header}>
-          {title && <h2 className={styles.title}>{title}</h2>}
-          <button className={styles.close} onClick={onClose}><X size={18} /></button>
-        </div>
+      <div
+        className={clsx(styles.modal, className)}
+        onClick={e => e.stopPropagation()}
+      >
+        {title && (
+          <div className={styles.header}>
+            <h2 className={styles.title}>{title}</h2>
+            <button className={styles.close} onClick={onClose}>&times;</button>
+          </div>
+        )}
         <div className={styles.body}>{children}</div>
       </div>
     </div>

@@ -2,14 +2,15 @@ import styles from './StatCard.module.css';
 
 export type StatCardProps = {
   label: string;
-  value: string | number;
+  value: number | string;
   icon?: React.ReactNode;
   trend?: string;
+  className?: string;
 };
 
-export default function StatCard({ label, value, icon, trend }: StatCardProps) {
+export default function StatCard({ label, value, icon, trend, className }: StatCardProps) {
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${className ?? ''}`}>
       <div className={styles.top}>
         <span className={styles.label}>{label}</span>
         {icon && <span className={styles.icon}>{icon}</span>}

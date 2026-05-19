@@ -1,92 +1,88 @@
 import { useState } from 'react';
+import { Plus, Building2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Plus, Search } from 'lucide-react';
 import { useAppContext } from '@/hooks/useAppContext';
-import PageHeader from '@/components/ui/PageHeader';
+import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import Card from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
+import PageHeader from '@/components/ui/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
-import Modal from '@/components/ui/Modal';
 import type { Client } from '@/types';
+import styles from '@/pages/Jobs.module.css';
 
 export default function Clients() {
   const { state, dispatch } = useAppContext();
   const navigate = useNavigate();
-  const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: '', industry: '', contact: '', email: '' });
+  const [form, setForm] = useState({
+    name: '',
+    industry: '',
+    contactName: '',
+    contactEmail: '',
+  });
 
-  const filtered = state.clients.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.industry.toLowerCase().includes(search.toLowerCase())
-  );
-
-  function handleAdd() {
+  const handleAdd = () => {
+    const now = new Date().toISOString();
     const newClient: Client = {
-      id: `c${Date.now()}`,
+      id: `client-${Date.now()}`,
       name: form.name,
       industry: form.industry,
-      contact: form.contact,
-      email: form.email,
-      status: 'active',
-      createdAt: new Date().toISOString().split('T')[0],
+      contactName: form.contactName,
+      contactEmail: form.contactEmail,
+      createdAt: now,
+      updatedAt: now,
     };
     dispatch({ type: 'ADD_CLIENT', payload: newClient });
     setShowModal(false);
-    setForm({ name: '', industry: '', contact: '', email: '' });
-  }
+    setForm({ name: '', industry: '', contactName: '', contactEmail: '' });
+  };
 
   return (
-    <div style={{ padding: '32px' }}>
+    <div className={styles.page}>
       <PageHeader
         title="Clients"
-        subtitle="Manage your client relationships"
-        actions={
+        subtitle={`${state.clients.length} clients`}
+        action={
           <Button onClick={() => setShowModal(true)}>
             <Plus size={16} /> Add Client
           </Button>
         }
       />
 
-      <div style={{ marginBottom: '20px' }}>
-        <Input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search clients..."
-          icon={<Search size={16} />}
-        />
-      </div>
-
-      {filtered.length === 0 ? (
+      {state.clients.length === 0 ? (
         <EmptyState
           icon={<Building2 size={40} />}
-          title="No clients found"
+          title="No clients yet"
           description="Add your first client to get started."
           action={<Button onClick={() => setShowModal(true)}>Add Client</Button>}
         />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-          {filtered.map(client => (
-            <Card key={client.id} onClick={() => navigate(`/clients/${client.id}`)}>
-              <div style={{ fontWeight: 700, fontSize: '15px', marginBottom: '6px' }}>{client.name}</div>
-              <div style={{ color: 'var(--color-gray-500)', fontSize: '13px', marginBottom: '4px' }}>{client.industry}</div>
-              <div style={{ fontSize: '13px', color: 'var(--color-gray-600)', marginBottom: '4px' }}>Contact: {client.contact}</div>
-              <div style={{ fontSize: '13px', color: 'var(--color-gray-600)', marginBottom: '12px' }}>{client.email}</div>
-              <Badge variant={client.status === 'active' ? 'success' : 'default'}>{client.status}</Badge>
-            </Card>
+        <div className={styles.grid}>
+          {state.clients.map(client => (
+            <div key={client.id} className={styles.card} onClick={() => navigate(`/clients/${client.id}`)}>
+              <div className={styles.cardHeader}>
+                <span className={styles.jobTitle}>{client.name}</span>
+              </div>
+              <div className={styles.meta}>
+                <span>{client.industry}</span>
+                <span>&middot;</span>
+                <span>{client.contactName}</span>
+              </div>
+            </div>
           ))}
         </div>
       )}
 
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Add Client">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <Modal open={showModal} onClose={() => setShowModal(false)} title="Add Client">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <Input label="Company Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
           <Input label="Industry" value={form.industry} onChange={e => setForm(f => ({ ...f, industry: e.target.value }))} />
-          <Input label="Contact Person" value={form.contact} onChange={e => setForm(f => ({ ...f, contact: e.target.value }))} />
-          <Input label="Email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} type="email" required />
-          <Button onClick={handleAdd} fullWidth>Add Client</Button>
+          <Input label="Contact Name" value={form.contactName} onChange={e => setForm(f => ({ ...f, contactName: e.target.value }))} />
+          <Input label="Contact Email" value={form.contactEmail} onChange={e => setForm(f => ({ ...f, contactEmail: e.target.value }))} />
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+            <Button onClick={handleAdd} disabled={!form.name}>Add Client</Button>
+          </div>
         </div>
       </Modal>
     </div>
