@@ -60,7 +60,7 @@ export default function Sidebar() {
 
       <div className={styles.userSection}>
         <div className={styles.userAvatar}>{state.currentUser.avatar}</div>
-        <div className={styles.userInfo}>
+        <div>
           <div className={styles.userName}>{state.currentUser.name}</div>
           <div className={styles.userRole}>{state.currentUser.role}</div>
         </div>
